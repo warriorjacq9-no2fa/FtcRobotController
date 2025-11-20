@@ -11,7 +11,6 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Gyroscope;
-import com.qualcomm.robotcore.hardware.Servo;
 
 import java.util.List;
 
@@ -25,8 +24,8 @@ public class MyFirstJAVAopMode extends LinearOpMode {
     private DcMotor backRight;
     private DcMotor launcherLeft;
     private DcMotor launcherRight;
-    private DcMotor intake;
-    private CRServo gateWheel;
+    private DcMotor intakeM;
+    private DcMotor conveyorRight;
     //private Servo gate;
     private DigitalChannel digitalTouch;
     private DistanceSensor sensorColorRange;
@@ -45,6 +44,7 @@ public class MyFirstJAVAopMode extends LinearOpMode {
             telemetry.addData("xdegrees", xdegrees);
             telemetry.addData("ydegrees", ydegrees);
             telemetry.addData("distance", distance);
+
         }
     }
 
@@ -54,20 +54,20 @@ public class MyFirstJAVAopMode extends LinearOpMode {
         telemetry.addData("Luancher", launcherLeft.getPower());
     }
 
-    public void feeder() {
-        intake.setPower(1);
-        telemetry.addData("Intake Power", intake.getPower());
+    public void intake() {
+        intakeM.setPower(1);
+        telemetry.addData("Intake Power", intakeM.getPower());
     }
 
     public void conveyor() {
-        if (gamepad1.left_bumper) {
-            gateWheel.setPower(1);
-           // gate.setPosition(1);
+        if (gamepad2.left_bumper) {
+            conveyorRight.setPower(1);
+            //gate.setPosition(1);
         } else {
-            gateWheel.setPower(0);
-           // gate.setPosition(0);
+            conveyorRight.setPower(0);
+            //gate.setPosition(0);
         }
-        telemetry.addData("conveyor", gateWheel.getPower());
+        telemetry.addData("conveyor", conveyorRight.getPower());
        // telemetry.addData("gate", gate.getPosition());
 
 
@@ -102,18 +102,19 @@ public class MyFirstJAVAopMode extends LinearOpMode {
         telemetry.setMsTransmissionInterval(11);
         limelight.pipelineSwitch(0);
         limelight.start();
-        intake = hardwareMap.get(DcMotor.class, "intake");
+        intakeM = hardwareMap.get(DcMotor.class, "intake");
         frontLeft = hardwareMap.get(DcMotor.class, "frontLeft");
         frontRight = hardwareMap.get(DcMotor.class, "frontRight");
         backLeft = hardwareMap.get(DcMotor.class, "backLeft");
         backRight = hardwareMap.get(DcMotor.class, "backRight");
-        gateWheel = hardwareMap.get(CRServo.class, "conveyor");
+        conveyorRight = hardwareMap.get(DcMotor.class, "conveyorRight");
         launcherLeft = hardwareMap.get(DcMotor.class, "launcherLeft");
         launcherRight = hardwareMap.get(DcMotor.class, "launcherRight");
         //gate = hardwareMap.get(Servo.class, "gate");
 
-        gateWheel.setPower(0);
+        conveyorRight.setPower(0);
         launcherRight.setDirection(DcMotorSimple.Direction.REVERSE);
+        conveyorRight.setDirection(DcMotorSimple.Direction.REVERSE);
 
         telemetry.addData("Status", "Initialized");
         telemetry.update();
@@ -123,7 +124,7 @@ public class MyFirstJAVAopMode extends LinearOpMode {
         while (opModeIsActive()) {
             drive();
             //limelight();
-            feeder();
+            intake();
             conveyor();
             launcher();
 
