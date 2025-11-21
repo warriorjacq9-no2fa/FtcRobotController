@@ -50,8 +50,8 @@ public class MyFirstJAVAopMode extends LinearOpMode {
     }
 
     public void launcher() {
-        launcherLeft.setPower(1);
-        launcherRight.setPower(1);
+        launcherLeft.setPower(.75);
+        launcherRight.setPower(.75);
         telemetry.addData("Luancher", launcherLeft.getPower());
     }
 
@@ -104,10 +104,10 @@ public class MyFirstJAVAopMode extends LinearOpMode {
     @Override
     public void runOpMode() {
 
-        limelight = hardwareMap.get(Limelight3A.class, "limelight");
-        telemetry.setMsTransmissionInterval(11);
-        limelight.pipelineSwitch(0);
-        limelight.start();
+        //limelight = hardwareMap.get(Limelight3A.class, "limelight");
+        //telemetry.setMsTransmissionInterval(11);
+        //limelight.pipelineSwitch(0);
+        //limelight.start();
         intakeM = hardwareMap.get(DcMotor.class, "intake");
         frontLeft = hardwareMap.get(DcMotor.class, "frontLeft");
         frontRight = hardwareMap.get(DcMotor.class, "frontRight");
@@ -119,7 +119,7 @@ public class MyFirstJAVAopMode extends LinearOpMode {
         gate = hardwareMap.get(Servo.class, "gate");
 
         conveyorRight.setPower(0);
-        launcherRight.setDirection(DcMotorSimple.Direction.REVERSE);
+        //launcherRight.setDirection(DcMotorSimple.Direction.REVERSE);
         conveyorRight.setDirection(DcMotorSimple.Direction.REVERSE);
 
         telemetry.addData("Status", "Initialized");
@@ -131,6 +131,7 @@ public class MyFirstJAVAopMode extends LinearOpMode {
             drive();
             //limelight();
             intake();
+            gate();
             conveyor();
             launcher();
 
