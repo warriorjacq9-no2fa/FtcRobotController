@@ -149,21 +149,21 @@ public class AutonomousOpMode extends OpMode {
     }
 
     private void test(double d) {
-        while(!drive(DRIVE_SPEED, -d, d, 1)){}
-        while(!drive(DRIVE_SPEED, d, 0, 1)){}
-        while(!drive(DRIVE_SPEED, 0, -d, 1)){}
-        while(!drive(DRIVE_SPEED, -d, 0, 1)){}
-        while(!drive(DRIVE_SPEED, -d, d, 1)){}
-        while(!rotate(ROTATE_SPEED, 10 * d)){}
-        while(!rotate(ROTATE_SPEED, 20 * -d)){}
-        while(!rotate(ROTATE_SPEED, 10 * d)){}
+        while(!drive(DRIVE_SPEED, -d, d)){}
+        while(!drive(DRIVE_SPEED, d, 0)){}
+        while(!drive(DRIVE_SPEED, 0, -d)){}
+        while(!drive(DRIVE_SPEED, -d, 0)){}
+        while(!drive(DRIVE_SPEED, -d, d)){}
+        while(!rotate(TURN_SPEED, 10 * d)){}
+        while(!rotate(TURN_SPEED, 20 * -d)){}
+        while(!rotate(TURN_SPEED, 10 * d)){}
     }
 
     @Override
     public void start() {
         test(4);
         // Now we can start autonomous
-        state = AutonomousState.TARGETING;
+        //state = AutonomousState.TARGETING;
     }
 
     double targetX = 0, targetY = 0;
