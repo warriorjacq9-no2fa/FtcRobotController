@@ -3,10 +3,25 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.hardware.limelightvision.Limelight3A;
+import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 @Autonomous(name="AutonomousOpMode", group="Bot")
 public class AutonomousOpMode extends OpMode {
+
+    private class Res3D {
+        public double tx, ty, ta;
+        public Res3D(double tx, double ty, double ta) {
+            this.tx = tx;
+            this.ty = ty;
+            this.ta = ta;
+        }
+
+        public String toString() {
+            return "%d %d %d".format(tx, ty, ta);
+        }
+    }
 
     // All length/distance values are in inches
 
@@ -26,9 +41,12 @@ public class AutonomousOpMode extends OpMode {
     private DcMotor backLeft;
     private DcMotor backRight;
 
+    private Limelight3A limelight;
+
     private enum AutonomousState {
         TARGETING,
         DRIVING,
+        ROTATING,
         LAUNCHING,
         DONE
     }
@@ -41,7 +59,23 @@ public class AutonomousOpMode extends OpMode {
         backRight.setMode(mode);
     }
 
+    private Res3D llRead() {
+        LLResult result = limelight.getLatestResult();
+        if (result != null && result.isValid()) {
+            double tx = result.getTx(); // How far left or right the target is (degrees)
+            double ty = result.getTy(); // How far up or down the target is (degrees)
+            double ta = result.getTa(); // How big the target looks (0%-100% of the image)
+
+            return new Res3D(tx, ty, ta); 
+        } else {
+            return null;
+        }
+    }
+
     private boolean drive(double speed, double dx, double dy) {
+
+        if(dx == 0 && dy == 0) return true;
+
         int newFrontLeftTarget;
         int newBackLeftTarget;
         int newFrontRightTarget;
@@ -126,7 +160,7 @@ public class AutonomousOpMode extends OpMode {
         return false;
     }
 
-    double posX, posY;
+    double posX, posY, posR;
 
     private AutonomousState state;
 
@@ -139,6 +173,11 @@ public class AutonomousOpMode extends OpMode {
         frontRight = hardwareMap.get(DcMotor.class, "frontRight");
         backLeft = hardwareMap.get(DcMotor.class, "backLeft");
         backRight = hardwareMap.get(DcMotor.class, "backRight");
+
+        limelight = hardwareMap.get(Limelight3A.class, "limelight");
+        limelight.setPollRateHz(100);
+        limelight.pipelineSwitch(0);
+        limelight.start();
 
         m_setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
@@ -166,23 +205,27 @@ public class AutonomousOpMode extends OpMode {
         //state = AutonomousState.TARGETING;
     }
 
-    double targetX = 0, targetY = 0;
+    double targetX = 0, targetY = 0, targetR = 0;
     @Override
     public void loop() {
         switch(state) {
             case TARGETING:
-                // TODO: targeting
-                targetX = 5;
-                targetY = 5;
+                Res3D target = llRead();
+                targetR = target.tx;
                 state = AutonomousState.DRIVING;
                 break;
             case DRIVING:
                 if(drive(DRIVE_SPEED, posX - targetX, posY - targetY)) {
                     posX = targetX;
                     posY = targetY;
-                    state = AutonomousState.LAUNCHING;
+                    state = AutonomousState.ROTATING;
                 }
                 break;
+            case ROTATING:
+                if(rotate(TURN_SPEED, posR - targetR)) {
+                    posR = targetR;
+                    state = AutonomousState.LAUNCHING;
+                }
             case LAUNCHING:
                 // TODO: launching
                 state = AutonomousState.DONE;
