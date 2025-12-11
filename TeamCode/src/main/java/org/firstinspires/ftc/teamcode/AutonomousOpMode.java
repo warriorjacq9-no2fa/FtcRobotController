@@ -17,10 +17,6 @@ public class AutonomousOpMode extends OpMode {
             this.ty = ty;
             this.ta = ta;
         }
-
-        public String toString() {
-            return "%d %d %d".format(tx, ty, ta);
-        }
     }
 
     // All length/distance values are in inches
@@ -126,7 +122,8 @@ public class AutonomousOpMode extends OpMode {
 
         double dr = degrees * (TURN_RADIUS * (Math.PI / 180));
 
-        int drIn = (int)(dr * COUNTS_PER_INCH);
+        //int drIn = (int)(dr * COUNTS_PER_INCH);
+        int drIn = 5;
 
         newFrontLeftTarget = frontLeft.getCurrentPosition() + drIn;
         newFrontRightTarget = frontRight.getCurrentPosition() - drIn;
@@ -174,10 +171,10 @@ public class AutonomousOpMode extends OpMode {
         backLeft = hardwareMap.get(DcMotor.class, "backLeft");
         backRight = hardwareMap.get(DcMotor.class, "backRight");
 
-        limelight = hardwareMap.get(Limelight3A.class, "limelight");
+        /*limelight = hardwareMap.get(Limelight3A.class, "limelight");
         limelight.setPollRateHz(100);
         limelight.pipelineSwitch(0);
-        limelight.start();
+        limelight.start();*/
 
         m_setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
@@ -187,20 +184,9 @@ public class AutonomousOpMode extends OpMode {
         state = AutonomousState.DONE;
     }
 
-    private void test(double d) {
-        while(!drive(DRIVE_SPEED, -d, d)){}
-        while(!drive(DRIVE_SPEED, d, 0)){}
-        while(!drive(DRIVE_SPEED, 0, -d)){}
-        while(!drive(DRIVE_SPEED, -d, 0)){}
-        while(!drive(DRIVE_SPEED, -d, d)){}
-        while(!rotate(TURN_SPEED, 10 * d)){}
-        while(!rotate(TURN_SPEED, 20 * -d)){}
-        while(!rotate(TURN_SPEED, 10 * d)){}
-    }
-
     @Override
     public void start() {
-        test(4);
+        rotate(1, 45);
         // Now we can start autonomous
         //state = AutonomousState.TARGETING;
     }
