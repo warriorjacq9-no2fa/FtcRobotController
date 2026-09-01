@@ -56,6 +56,8 @@ public class FtcTeleOp extends LinearOpMode {
         backRight = hardwareMap.get(DcMotor.class, "backRight");
         intake = hardwareMap.get(CRServo.class, "intake");
 
+        waitForStart();
+
         while(opModeIsActive()) drive();
     }
 }
