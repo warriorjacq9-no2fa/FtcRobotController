@@ -130,10 +130,10 @@ public class Driver {
         double blEncoder = backLeft.getCurrentPosition();
         double brEncoder = backRight.getCurrentPosition();
 
-        double flRotations = (flEncoder - oldFlEncoder) * ENCODER_CPR;
-        double frRotations = (frEncoder - oldFrEncoder) * ENCODER_CPR;
-        double blRotations = (blEncoder - oldBlEncoder) * ENCODER_CPR;
-        double brRotations = (brEncoder - oldBrEncoder) * ENCODER_CPR;
+        double flRadians = ((flEncoder - oldFlEncoder) * ENCODER_CPR) * 2 * Math.PI;
+        double frRadians = ((frEncoder - oldFrEncoder) * ENCODER_CPR) * 2 * Math.PI;
+        double blRadians = ((blEncoder - oldBlEncoder) * ENCODER_CPR) * 2 * Math.PI;
+        double brRadians = ((brEncoder - oldBrEncoder) * ENCODER_CPR) * 2 * Math.PI;
 
         oldFlEncoder = flEncoder;
         oldFrEncoder = frEncoder;
@@ -178,11 +178,11 @@ public class Driver {
          * And then convert to degrees:
          * Δϕ = (360 / 2π)((r / 4(L + W))(Δθfl + -Δθfr + Δθbl + -Δθbr))
          */
-        double dx = (WHEEL_RADIUS_M / 4) * (flRotations + frRotations + blRotations + brRotations);
-        double dy = (WHEEL_RADIUS_M / 4) * (flRotations - frRotations - blRotations + brRotations);
+        double dx = (WHEEL_RADIUS_M / 4) * (flRadians + frRadians + blRadians + brRadians);
+        double dy = (WHEEL_RADIUS_M / 4) * (flRadians - frRadians - blRadians + brRadians);
         double drx = (360 / (2 * Math.PI)) *
                 (WHEEL_RADIUS_M / (4 * (CHASSIS_LENGTH_M / 2 + CHASSIS_WIDTH_M / 2))) *
-                (flRotations - frRotations - blRotations + brRotations);
+                (flRadians - frRadians - blRadians + brRadians);
 
         rotated += drx;
 
