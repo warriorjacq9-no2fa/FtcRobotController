@@ -1,14 +1,15 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 import java.util.Locale;
 
 public class Driver {
 
-    private static final boolean DEBUG = false;
+    public static final boolean DEBUG = false;
 
     private static final double TOLERANCE_M = 0.01;
     private static final double TOLERANCE_DEG = 0.5;
@@ -48,10 +49,10 @@ public class Driver {
             return heading;
         }
     }
-    private final DcMotor frontLeft;
-    private final DcMotor frontRight;
-    private final DcMotor backLeft;
-    private final DcMotor backRight;
+    private final DcMotorEx frontLeft;
+    private final DcMotorEx frontRight;
+    private final DcMotorEx backLeft;
+    private final DcMotorEx backRight;
     private final Telemetry telemetry;
     double oldFlEncoder;
     double oldFrEncoder;
@@ -60,8 +61,8 @@ public class Driver {
     double rotated;
 
     public Driver(
-            DcMotor frontLeft, DcMotor frontRight,
-            DcMotor backLeft, DcMotor backRight,
+            DcMotorEx frontLeft, DcMotorEx frontRight,
+            DcMotorEx backLeft, DcMotorEx backRight,
             Telemetry telemetry
             ) {
         this.frontLeft = frontLeft;
@@ -70,25 +71,26 @@ public class Driver {
         this.backRight = backRight;
         this.telemetry = telemetry;
 
-        frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        backRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        frontLeft.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+        frontRight.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+        backLeft.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+        backRight.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
 
-        frontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        frontRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        backLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        backRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        frontLeft.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+        frontRight.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+        backLeft.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+        backRight.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
 
         /*
-         * RUN_WITHOUT_ENCODER still allows encoder
-         * readings, but allows us to set raw
-         * power values instead of desired velocities
+         * RUN_USING_ENCODER uses the motor
+         * controller's integrated hardware
+         * PID control, which helps to control
+         * wheel slip
          */
-        frontLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        frontRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        backLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        backRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        frontLeft.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+        frontRight.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+        backLeft.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+        backRight.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
 
         telemetry.addLine("Driver initialized");
         telemetry.update();
@@ -112,6 +114,16 @@ public class Driver {
      */
     public Pose driveTo(Pose dPose, double speed, boolean reset) {
         if(reset) {
+            frontLeft.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+            frontRight.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+            backLeft.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+            backRight.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+
+            frontLeft.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+            frontRight.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+            backLeft.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+            backRight.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+
             oldFlEncoder = 0;
             oldFrEncoder = 0;
             oldBlEncoder = 0;
@@ -209,10 +221,10 @@ public class Driver {
         double y = speed * Math.signum(pose.getY());
         double rx = speed * Math.signum(pose.getHeading());
 
-        frontLeft.setPower(x + y + rx);
-        frontRight.setPower(x - y - rx);
-        backLeft.setPower(x - y + rx);
-        backRight.setPower(x + y - rx);
+        frontLeft.setVelocity(x + y + rx, AngleUnit.RADIANS);
+        frontRight.setVelocity(x - y - rx, AngleUnit.RADIANS);
+        backLeft.setVelocity(x - y + rx, AngleUnit.RADIANS);
+        backRight.setVelocity(x + y - rx, AngleUnit.RADIANS);
 
         /*
          * These telemetry calls would dump a
