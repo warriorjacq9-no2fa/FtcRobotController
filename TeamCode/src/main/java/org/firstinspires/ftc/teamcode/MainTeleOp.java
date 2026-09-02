@@ -13,8 +13,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
  * TeleOp is how the drive team operates the robot
  * and is usually pretty simple
  */
-@TeleOp(name="TeleOp")
-public class FtcTeleOp extends LinearOpMode {
+@TeleOp(name="MainTeleOp")
+public class MainTeleOp extends LinearOpMode {
 
     /*
      * Speed is in degrees per second, so we
