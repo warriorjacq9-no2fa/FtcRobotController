@@ -9,7 +9,7 @@ import java.util.Locale;
 
 public class Driver {
 
-    public static final boolean DEBUG = false;
+    public static final boolean DEBUG = true;
 
     private static final double TOLERANCE_M = 0.01;
     private static final double TOLERANCE_DEG = 0.5;
@@ -135,22 +135,23 @@ public class Driver {
                 Math.abs(dPose.getX()) < TOLERANCE_M &&
                 Math.abs(dPose.getY()) < TOLERANCE_M &&
                 Math.abs(dPose.getHeading()) < TOLERANCE_DEG
-        ) return null;
+        ) {
+            frontLeft.setPower(0);
+            frontRight.setPower(0);
+            backLeft.setPower(0);
+            backRight.setPower(0);
+            return null;
+        }
 
         double flEncoder = frontLeft.getCurrentPosition();
         double frEncoder = frontRight.getCurrentPosition();
         double blEncoder = backLeft.getCurrentPosition();
         double brEncoder = backRight.getCurrentPosition();
 
-        double flRadians = ((flEncoder - oldFlEncoder) * ENCODER_CPR) * 2 * Math.PI;
-        double frRadians = ((frEncoder - oldFrEncoder) * ENCODER_CPR) * 2 * Math.PI;
-        double blRadians = ((blEncoder - oldBlEncoder) * ENCODER_CPR) * 2 * Math.PI;
-        double brRadians = ((brEncoder - oldBrEncoder) * ENCODER_CPR) * 2 * Math.PI;
-
-        oldFlEncoder = flEncoder;
-        oldFrEncoder = frEncoder;
-        oldBlEncoder = blEncoder;
-        oldBrEncoder = brEncoder;
+        double flRadians = ((flEncoder - oldFlEncoder) / ENCODER_CPR) * 2 * Math.PI;
+        double frRadians = ((frEncoder - oldFrEncoder) / ENCODER_CPR) * 2 * Math.PI;
+        double blRadians = ((blEncoder - oldBlEncoder) / ENCODER_CPR) * 2 * Math.PI;
+        double brRadians = ((brEncoder - oldBrEncoder) / ENCODER_CPR) * 2 * Math.PI;
 
         /*
          * To determine distance moved using the
@@ -187,16 +188,14 @@ public class Driver {
          * center to wheels along the Y axis, we
          * divide by L + W to get rotation in radians:
          * Δϕ = (r / 4(L + W))(Δθfl + -Δθfr + Δθbl + -Δθbr)
-         * And then convert to degrees:
-         * Δϕ = (360 / 2π)((r / 4(L + W))(Δθfl + -Δθfr + Δθbl + -Δθbr))
          */
         double dx = (WHEEL_RADIUS_M / 4) * (flRadians + frRadians + blRadians + brRadians);
         double dy = (WHEEL_RADIUS_M / 4) * (flRadians - frRadians - blRadians + brRadians);
-        double drx = (360 / (2 * Math.PI)) *
-                (WHEEL_RADIUS_M / (4 * (CHASSIS_LENGTH_M / 2 + CHASSIS_WIDTH_M / 2))) *
+        double drx = (WHEEL_RADIUS_M / (4 * (CHASSIS_LENGTH_M / 2 + CHASSIS_WIDTH_M / 2))) *
                 (flRadians - frRadians - blRadians + brRadians);
 
         rotated += drx;
+        if(rotated > 2 * Math.PI) rotated -= 2 * Math.PI;
 
         /*
          * Now we have the distance moved, but we need to
@@ -212,9 +211,9 @@ public class Driver {
         double g_dy = Math.sin(rotated) * dx + Math.cos(rotated) * dy;
 
         Pose pose = new Pose(
-                dPose.getX() + g_dx,
-                dPose.getY() + g_dy,
-                dPose.getHeading() + drx
+                dPose.getX() - g_dx,
+                dPose.getY() - g_dy,
+                dPose.getHeading() - drx
         );
 
         double x = speed * Math.signum(pose.getX());
@@ -232,12 +231,24 @@ public class Driver {
          * if we enable DEBUG when compiling
          */
         if(DEBUG) {
-            telemetry.addData("Driver",
-                    String.format(Locale.ENGLISH, "Moved %f,%f,%f", g_dx, g_dy, drx));
-            telemetry.addData("Driver",
-                    String.format(Locale.ENGLISH, "Wrote %f,%f,%f", x, y, rx));
+            telemetry.addData("Moved",
+                    String.format(Locale.ENGLISH, "%f,%f,%f", g_dx, g_dy, drx));
+            telemetry.addData("Moved local",
+                    String.format(Locale.ENGLISH, "%f,%f", dx, dy));
+            telemetry.addData("Radians",
+                    String.format(Locale.ENGLISH, "%f,%f,%f,%f",
+                            flRadians, frRadians, blRadians, brRadians
+                    ));
+            telemetry.addData("Wrote",
+                    String.format(Locale.ENGLISH, "%f,%f,%f", x, y, rx));
+            telemetry.addData("Rotation", rotated);
             telemetry.update();
         }
+
+        oldFlEncoder = flEncoder;
+        oldFrEncoder = frEncoder;
+        oldBlEncoder = blEncoder;
+        oldBrEncoder = brEncoder;
 
         return pose;
     }

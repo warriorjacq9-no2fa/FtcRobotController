@@ -8,7 +8,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 @Autonomous(name="TestAuto")
 public class TestAuto extends OpMode {
 
-    private static final double SPEED = (1000) / 52.0;
+    private static final double SPEED = (500) / 52.0;
 
     private Driver driver;
     private DcMotorEx frontLeft;
@@ -29,11 +29,11 @@ public class TestAuto extends OpMode {
     public void init() {
         state = AutoState.DRIVING;
 
-        frontLeft = hardwareMap.get(DcMotorEx.class, "frontLeft");
-        frontRight = hardwareMap.get(DcMotorEx.class, "frontRight");
-        backLeft = hardwareMap.get(DcMotorEx.class, "backLeft");
-        backRight = hardwareMap.get(DcMotorEx.class, "backRight");
-        intake = hardwareMap.get(CRServo.class, "intake");
+        frontLeft = hardwareMap.get(DcMotorEx.class, "front_left_motor");
+        frontRight = hardwareMap.get(DcMotorEx.class, "front_right_motor");
+        backLeft = hardwareMap.get(DcMotorEx.class, "back_left_motor");
+        backRight = hardwareMap.get(DcMotorEx.class, "back_right_motor");
+        //intake = hardwareMap.get(CRServo.class, "intake");
 
         driver = new Driver(frontLeft, frontRight, backLeft, backRight, telemetry);
 
@@ -59,15 +59,11 @@ public class TestAuto extends OpMode {
          */
         switch(state) {
             case DRIVING:
-                pose = new Driver.Pose(0.5, 0.5, 90);
+                pose = new Driver.Pose(1, 1, 0);
                 pose = driver.driveTo(pose, SPEED, true);
                 if(pose == null) {
                     state = AutoState.COMPLETE;
-                    telemetry.addLine("Auto complete");
                 } else {
-                    if(Driver.DEBUG) {
-                        telemetry.addData("driveTo", pose);
-                    }
                     state = AutoState.DRIVING_WAIT;
                     telemetry.addLine("Driving...");
                 }
@@ -75,14 +71,8 @@ public class TestAuto extends OpMode {
 
             case DRIVING_WAIT:
                 pose = driver.driveTo(pose, SPEED, false);
-                if(pose == null) {
-                    telemetry.addLine("Auto complete");
+                if(pose == null)
                     state = AutoState.COMPLETE;
-                } else {
-                    if(Driver.DEBUG) {
-                        telemetry.addData("driveTo", pose);
-                    }
-                }
                 break;
 
             case COMPLETE:
