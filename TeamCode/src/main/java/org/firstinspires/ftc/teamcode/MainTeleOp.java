@@ -35,8 +35,8 @@ public class MainTeleOp extends LinearOpMode {
     private IMU imu;
 
     private void drive() {
-        double x = SPEED * gamepad1.left_stick_x;
-        double y = -SPEED * gamepad1.left_stick_y;
+        double x = SPEED * gamepad1.left_stick_y;
+        double y = -SPEED * gamepad1.left_stick_x;
         double rx = SPEED * gamepad1.right_stick_x;
 
         /* Mecanum drive equations */
@@ -94,8 +94,8 @@ public class MainTeleOp extends LinearOpMode {
         backLeft.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
         backRight.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
 
-        frontLeft.setDirection(DcMotorEx.Direction.REVERSE);
-        backLeft.setDirection(DcMotorEx.Direction.REVERSE);
+        frontRight.setDirection(DcMotorEx.Direction.REVERSE);
+        backRight.setDirection(DcMotorEx.Direction.REVERSE);
 
         frontLeft.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
         frontRight.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
