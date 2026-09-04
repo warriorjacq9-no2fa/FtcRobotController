@@ -29,11 +29,11 @@ public class TestAuto extends OpMode {
     public void init() {
         state = AutoState.DRIVING;
 
-        frontLeft = hardwareMap.get(DcMotorEx.class, "front_left_motor");
-        frontRight = hardwareMap.get(DcMotorEx.class, "front_right_motor");
-        backLeft = hardwareMap.get(DcMotorEx.class, "back_left_motor");
-        backRight = hardwareMap.get(DcMotorEx.class, "back_right_motor");
-        //intake = hardwareMap.get(CRServo.class, "intake");
+        frontLeft = hardwareMap.get(DcMotorEx.class, "frontLeft");
+        frontRight = hardwareMap.get(DcMotorEx.class, "frontRight");
+        backLeft = hardwareMap.get(DcMotorEx.class, "backLeft");
+        backRight = hardwareMap.get(DcMotorEx.class, "backRight");
+        intake = hardwareMap.get(CRServo.class, "intake");
 
         driver = new Driver(frontLeft, frontRight, backLeft, backRight, telemetry);
 
