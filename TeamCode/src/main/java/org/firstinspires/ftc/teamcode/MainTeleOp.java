@@ -36,7 +36,7 @@ public class MainTeleOp extends LinearOpMode {
 
     private void drive() {
         double x = SPEED * gamepad1.left_stick_y;
-        double y = SPEED * gamepad1.left_stick_x;
+        double y = SPEED * -gamepad1.left_stick_x;
         double rx = SPEED * gamepad1.right_stick_x;
 
         /* Mecanum drive equations */
