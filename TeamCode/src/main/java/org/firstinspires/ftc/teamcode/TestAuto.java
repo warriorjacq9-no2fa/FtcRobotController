@@ -59,7 +59,7 @@ public class TestAuto extends OpMode {
          */
         switch(state) {
             case DRIVING:
-                pose = new Driver.Pose(1, 1, 0);
+                pose = new Driver.Pose(1, 1, (90.0 / 360) * 2 * Math.PI);
                 pose = driver.driveTo(pose, SPEED, true);
                 if(pose == null) {
                     state = AutoState.COMPLETE;

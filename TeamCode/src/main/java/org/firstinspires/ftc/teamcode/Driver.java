@@ -76,6 +76,9 @@ public class Driver {
         backLeft.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
         backRight.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
 
+        frontRight.setDirection(DcMotorEx.Direction.REVERSE);
+        backRight.setDirection(DcMotorEx.Direction.REVERSE);
+
         frontLeft.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
         frontRight.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
         backLeft.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
@@ -192,7 +195,7 @@ public class Driver {
         double dx = (WHEEL_RADIUS_M / 4) * (flRadians + frRadians + blRadians + brRadians);
         double dy = (WHEEL_RADIUS_M / 4) * (flRadians - frRadians - blRadians + brRadians);
         double drx = (WHEEL_RADIUS_M / (4 * (CHASSIS_LENGTH_M / 2 + CHASSIS_WIDTH_M / 2))) *
-                (flRadians - frRadians - blRadians + brRadians);
+                (flRadians - frRadians + blRadians - brRadians);
 
         rotated += drx;
         if(rotated > 2 * Math.PI) rotated -= 2 * Math.PI;
@@ -215,9 +218,11 @@ public class Driver {
                 dPose.getY() - g_dy,
                 dPose.getHeading() - drx
         );
+        double localX =  Math.cos(rotated) * pose.getX() + Math.sin(rotated) * pose.getY();
+        double localY = -Math.sin(rotated) * pose.getX() + Math.cos(rotated) * pose.getY();
 
-        double x = speed * Math.signum(pose.getX());
-        double y = speed * Math.signum(pose.getY());
+        double x = speed * Math.signum(localX);
+        double y = speed * Math.signum(localY);
         double rx = speed * Math.signum(pose.getHeading());
 
         frontLeft.setVelocity(x + y + rx, AngleUnit.RADIANS);

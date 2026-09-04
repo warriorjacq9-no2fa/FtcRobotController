@@ -4,8 +4,11 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.IMU;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 
 /*
  * The FTC controller has two types of operation
@@ -28,6 +31,7 @@ public class MainTeleOp extends LinearOpMode {
     private DcMotorEx backLeft;
     private DcMotorEx backRight;
     private CRServo intake;
+    private IMU imu;
 
     private void drive() {
         double x = SPEED * gamepad1.left_stick_x;
@@ -39,17 +43,35 @@ public class MainTeleOp extends LinearOpMode {
         frontRight.setVelocity(x - y - rx, AngleUnit.RADIANS);
         backLeft.setVelocity(x - y + rx, AngleUnit.RADIANS);
         backRight.setVelocity(x + y - rx, AngleUnit.RADIANS);
+    }
 
-        /*
-         * A = intake forward
-         * B = intake reverse
-         */
+    private double heading;
+    private void runImu() {
+        heading = imu.getRobotOrientation(
+                AxesReference.EXTRINSIC,
+                AxesOrder.XYZ,
+                AngleUnit.RADIANS
+        ).thirdAngle;
+    }
+
+    private void runIntake() {
         if(gamepad1.a)
             intake.setPower(1);
         else if(gamepad1.b)
             intake.setPower(-1);
         else
             intake.setPower(0);
+
+    }
+    private void driveGlobal() {
+        double x = SPEED * (Math.cos(heading) * gamepad1.left_stick_x + Math.sin(heading) * gamepad1.left_stick_y);
+        double y = SPEED * (-Math.sin(heading) * gamepad1.left_stick_x + Math.cos(heading) * gamepad1.left_stick_y);
+        double rx = SPEED * gamepad1.right_stick_x;
+
+        frontLeft.setVelocity(x + y + rx, AngleUnit.RADIANS);
+        frontRight.setVelocity(x - y - rx, AngleUnit.RADIANS);
+        backLeft.setVelocity(x - y + rx, AngleUnit.RADIANS);
+        backRight.setVelocity(x + y - rx, AngleUnit.RADIANS);
     }
 
     @Override
@@ -64,6 +86,7 @@ public class MainTeleOp extends LinearOpMode {
         backLeft = hardwareMap.get(DcMotorEx.class, "backLeft");
         backRight = hardwareMap.get(DcMotorEx.class, "backRight");
         intake = hardwareMap.get(CRServo.class, "intake");
+        imu = hardwareMap.get(IMU.class, "imu");
 
         frontLeft.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
         frontRight.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
@@ -82,6 +105,14 @@ public class MainTeleOp extends LinearOpMode {
 
         waitForStart();
 
-        while(opModeIsActive()) drive();
+        while(opModeIsActive()) {
+            runImu();
+            runIntake();
+            if(gamepad1.right_trigger_pressed) {
+                driveGlobal();
+            } else {
+                drive();
+            }
+        }
     }
 }
