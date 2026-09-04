@@ -15,7 +15,7 @@ public class TestAuto extends OpMode {
     private DcMotorEx frontRight;
     private DcMotorEx backLeft;
     private DcMotorEx backRight;
-    private CRServo intake;
+    private DcMotorEx intake;
 
     private enum AutoState {
         DRIVING,
@@ -33,7 +33,7 @@ public class TestAuto extends OpMode {
         frontRight = hardwareMap.get(DcMotorEx.class, "frontRight");
         backLeft = hardwareMap.get(DcMotorEx.class, "backLeft");
         backRight = hardwareMap.get(DcMotorEx.class, "backRight");
-        intake = hardwareMap.get(CRServo.class, "intake");
+        intake = hardwareMap.get(DcMotorEx.class, "intake");
 
         driver = new Driver(frontLeft, frontRight, backLeft, backRight, telemetry);
 

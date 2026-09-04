@@ -25,12 +25,13 @@ public class MainTeleOp extends LinearOpMode {
      * from mm/s
      */
     private static final double SPEED = (1000) / 52.0;
+    private static final double INTAKE_SPEED = (1100) * ((2 * Math.PI) / 60);
 
     private DcMotorEx frontLeft;
     private DcMotorEx frontRight;
     private DcMotorEx backLeft;
     private DcMotorEx backRight;
-    private CRServo intake;
+    private DcMotorEx intake;
     private IMU imu;
 
     private void drive() {
@@ -56,11 +57,11 @@ public class MainTeleOp extends LinearOpMode {
 
     private void runIntake() {
         if(gamepad1.a)
-            intake.setPower(1);
+            intake.setVelocity(INTAKE_SPEED);
         else if(gamepad1.b)
-            intake.setPower(-1);
+            intake.setVelocity(-INTAKE_SPEED);
         else
-            intake.setPower(0);
+            intake.setVelocity(0);
 
     }
     private void driveGlobal() {
@@ -85,7 +86,7 @@ public class MainTeleOp extends LinearOpMode {
         frontRight = hardwareMap.get(DcMotorEx.class, "frontRight");
         backLeft = hardwareMap.get(DcMotorEx.class, "backLeft");
         backRight = hardwareMap.get(DcMotorEx.class, "backRight");
-        intake = hardwareMap.get(CRServo.class, "intake");
+        intake = hardwareMap.get(DcMotorEx.class, "intake");
         imu = hardwareMap.get(IMU.class, "imu");
 
         frontLeft.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
