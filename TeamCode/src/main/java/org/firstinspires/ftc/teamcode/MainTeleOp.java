@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
@@ -66,14 +67,17 @@ public class MainTeleOp extends LinearOpMode {
 
     }
     private void driveGlobal() {
-        double x = SPEED * (Math.cos(heading) * gamepad1.left_stick_x + Math.sin(heading) * gamepad1.left_stick_y);
-        double y = SPEED * (-Math.sin(heading) * gamepad1.left_stick_x + Math.cos(heading) * gamepad1.left_stick_y);
+        double x = -gamepad1.left_stick_y;
+        double y = gamepad1.left_stick_x;
         double rx = SPEED * gamepad1.right_stick_x;
 
-        frontLeft.setVelocity(x + y + rx, AngleUnit.RADIANS);
-        frontRight.setVelocity(x - y - rx, AngleUnit.RADIANS);
-        backLeft.setVelocity(x - y + rx, AngleUnit.RADIANS);
-        backRight.setVelocity(x + y - rx, AngleUnit.RADIANS);
+        double gx = SPEED * (Math.cos(heading) * x - Math.sin(heading) * y);
+        double gy = SPEED * (Math.sin(heading) * x + Math.cos(heading) * y);
+
+        frontLeft.setVelocity(gx + gy + rx, AngleUnit.RADIANS);
+        frontRight.setVelocity(gx - gy - rx, AngleUnit.RADIANS);
+        backLeft.setVelocity(gx - gy + rx, AngleUnit.RADIANS);
+        backRight.setVelocity(gx + gy - rx, AngleUnit.RADIANS);
     }
 
     @Override
@@ -89,6 +93,11 @@ public class MainTeleOp extends LinearOpMode {
         backRight = hardwareMap.get(DcMotorEx.class, "backRight");
         //intake = hardwareMap.get(DcMotorEx.class, "intake");
         imu = hardwareMap.get(IMU.class, "imu");
+        RevHubOrientationOnRobot orientationOnRobot = new RevHubOrientationOnRobot(
+                RevHubOrientationOnRobot.LogoFacingDirection.FORWARD,
+                RevHubOrientationOnRobot.UsbFacingDirection.UP
+        );
+        imu.initialize(new IMU.Parameters(orientationOnRobot));
 
         frontLeft.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
         frontRight.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
