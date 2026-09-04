@@ -24,8 +24,8 @@ public class MainTeleOp extends LinearOpMode {
      * use the wheel radius to calculate speed
      * from mm/s
      */
-    private static final double SPEED = (1000) / 52.0;
-    private static final double INTAKE_SPEED = (1100) * ((2 * Math.PI) / 60);
+    private static final double SPEED = (750) / 52.0;
+    private static final double INTAKE_SPEED = (1000) * ((2 * Math.PI) / 60);
 
     private DcMotorEx frontLeft;
     private DcMotorEx frontRight;
