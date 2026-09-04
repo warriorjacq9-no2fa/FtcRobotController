@@ -86,7 +86,7 @@ public class MainTeleOp extends LinearOpMode {
         frontRight = hardwareMap.get(DcMotorEx.class, "frontRight");
         backLeft = hardwareMap.get(DcMotorEx.class, "backLeft");
         backRight = hardwareMap.get(DcMotorEx.class, "backRight");
-        intake = hardwareMap.get(DcMotorEx.class, "intake");
+        //intake = hardwareMap.get(DcMotorEx.class, "intake");
         imu = hardwareMap.get(IMU.class, "imu");
 
         frontLeft.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
