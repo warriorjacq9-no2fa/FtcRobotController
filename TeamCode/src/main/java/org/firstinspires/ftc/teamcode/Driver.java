@@ -1,9 +1,12 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.IMU;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 import java.util.Locale;
 
@@ -12,7 +15,7 @@ public class Driver {
     public static final boolean DEBUG = true;
 
     private static final double TOLERANCE_M = 0.01;
-    private static final double TOLERANCE_DEG = 0.5;
+    private static final double TOLERANCE_RAD = 0.01;
 
     /* Counts per revolution, found on the product page for the motor */
     private static final double ENCODER_CPR = 384.5;
@@ -36,40 +39,38 @@ public class Driver {
             this.y = y;
             this.heading = heading;
         }
-
-        public double getX() {
-            return x;
-        }
-
-        public double getY() {
-            return y;
-        }
-
-        public double getHeading() {
-            return heading;
-        }
     }
     private final DcMotorEx frontLeft;
     private final DcMotorEx frontRight;
     private final DcMotorEx backLeft;
     private final DcMotorEx backRight;
+    private final IMU imu;
     private final Telemetry telemetry;
     double oldFlEncoder;
     double oldFrEncoder;
     double oldBlEncoder;
     double oldBrEncoder;
-    double rotated;
+    double heading;
+    double oldHeading;
 
     public Driver(
             DcMotorEx frontLeft, DcMotorEx frontRight,
             DcMotorEx backLeft, DcMotorEx backRight,
+            IMU imu,
             Telemetry telemetry
             ) {
         this.frontLeft = frontLeft;
         this.frontRight = frontRight;
         this.backLeft = backLeft;
         this.backRight = backRight;
+        this.imu = imu;
         this.telemetry = telemetry;
+
+        RevHubOrientationOnRobot orientationOnRobot = new RevHubOrientationOnRobot(
+                RevHubOrientationOnRobot.LogoFacingDirection.FORWARD,
+                RevHubOrientationOnRobot.UsbFacingDirection.UP
+        );
+        imu.initialize(new IMU.Parameters(orientationOnRobot));
 
         frontLeft.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
         frontRight.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
@@ -99,45 +100,41 @@ public class Driver {
         telemetry.update();
     }
 
-    /*
-     * This method needs to be called in a loop
-     * We don't use a loop inside the method since
-     * the main OpMode loop cannot block (force
-     * the controller to wait)
-     */
+    public void loop() {
+        heading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
+        telemetry.addData("Heading", heading);
+    }
+
     /**
-     * Drive to a relative position
-     *
+     * Drive to a given relative pose in the
+     * global frame
      * @param dPose Relative target pose
-     * @param speed Speed to move with, 0 to 1
-     * @param reset Resets encoder and rotation
-     *              counters
-     * @return Remaining relative target pose to
-     * pass back to this method, or null if done
+     * @param speed Speed, in distanceUnits/sec
+     * @param angleUnits Angle units for pose
+     * @param distanceUnits Distance units for
+     *                      pose and speed
+     * @return Value to pass back to this
+     * function next iteration, or null if done.
+     * Essentially dPose - poseMoved
      */
-    public Pose driveTo(Pose dPose, double speed, boolean reset) {
-        if(reset) {
-            frontLeft.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
-            frontRight.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
-            backLeft.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
-            backRight.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
-
-            frontLeft.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
-            frontRight.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
-            backLeft.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
-            backRight.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
-
-            oldFlEncoder = 0;
-            oldFrEncoder = 0;
-            oldBlEncoder = 0;
-            oldBrEncoder = 0;
-            rotated = 0;
+    public Pose drive(
+            Pose dPose, double speed,
+            AngleUnit angleUnits, DistanceUnit distanceUnits
+    ) {
+        if(dPose == null) {
+            frontLeft.setPower(0);
+            frontRight.setPower(0);
+            backLeft.setPower(0);
+            backRight.setPower(0);
+            return null;
         }
-        if(dPose == null) return null;
+        double x = distanceUnits.toMeters(dPose.x);
+        double y = distanceUnits.toMeters(dPose.y);
+        double rx = angleUnits.toRadians(dPose.heading);
         if(
-                Math.abs(dPose.getX()) < TOLERANCE_M &&
-                Math.abs(dPose.getY()) < TOLERANCE_M &&
-                Math.abs(dPose.getHeading()) < TOLERANCE_DEG
+                Math.abs(x) < TOLERANCE_M &&
+                Math.abs(y) < TOLERANCE_M &&
+                Math.abs(rx) < TOLERANCE_RAD
         ) {
             frontLeft.setPower(0);
             frontRight.setPower(0);
@@ -156,104 +153,53 @@ public class Driver {
         double blRadians = ((blEncoder - oldBlEncoder) / ENCODER_CPR) * 2 * Math.PI;
         double brRadians = ((brEncoder - oldBrEncoder) / ENCODER_CPR) * 2 * Math.PI;
 
-        /*
-         * To determine distance moved using the
-         * encoders we can reverse the standard
-         * mecanum movement equations,
-         * for example for strafing (left and right):
-         * [ dfl, dfr ] = [ y,-y ]
-         * [ dbl, dbr ] = [-y, y ]
-         * Plugging in the equation for wheel movement,
-         * d=rΔθ
-         * we get (after reversing):
-         * [ y,-y ] = [ rΔθfl, rΔθfr ]
-         * [-y, y ] = [ rΔθbl, rΔθbr ]
-         * This simplifies to:
-         * [ y, y ] = [ rΔθfl,-rΔθfr ]
-         * [ y, y ] = [-rΔθbl, rΔθbr ]
-         * Then calculate average of each wheel:
-         * Δy = (rΔθfl + -rΔθfr + -rΔθbl + rΔθbr) / 4
-         * And factor out r:
-         * Δy = (r / 4)(Δθfl + -Δθfr + -Δθbl + Δθbr)
-         *
-         * To calculate forward and backward movement
-         * (X axis) we add all wheel rotations since
-         * moving forward spins all wheels forward.
-         * Rotation is a little different since we need
-         * to account for the chassis dimensions.
-         * Given the equation:
-         * [ dfl, dfr ] = [ ϕ,-ϕ ]
-         * [ dbl, dbr ] = [ ϕ,-ϕ ]
-         * We get (using the same principle as above):
-         * Δϕ = (r / 4)(Δθfl + -Δθfr + Δθbl + -Δθbr)
-         * Given L = distance from center to wheels
-         * along the X axis and W = distance from
-         * center to wheels along the Y axis, we
-         * divide by L + W to get rotation in radians:
-         * Δϕ = (r / 4(L + W))(Δθfl + -Δθfr + Δθbl + -Δθbr)
-         */
         double dx = (WHEEL_RADIUS_M / 4) * (flRadians + frRadians + blRadians + brRadians);
         double dy = (WHEEL_RADIUS_M / 4) * (flRadians - frRadians - blRadians + brRadians);
-        double drx = (WHEEL_RADIUS_M / (4 * (CHASSIS_LENGTH_M / 2 + CHASSIS_WIDTH_M / 2))) *
-                (flRadians - frRadians + blRadians - brRadians);
 
-        rotated += drx;
-        if(rotated > 2 * Math.PI) rotated -= 2 * Math.PI;
-
-        /*
-         * Now we have the distance moved, but we need to
-         * account for rotation by converting the
-         * x and y distances using this calculation:
-         * [ x' ] = [ cosϕ,-sinϕ ] [ x ]
-         * [ y' ] = [ sinϕ, cosϕ ] [ y ]
-         * Which simplifies to:
-         * x' = cosϕ * x + -sinϕ * y
-         * y' = sinϕ * x + cosϕ * y
-         */
-        double g_dx = Math.cos(rotated) * dx - Math.sin(rotated) * dy;
-        double g_dy = Math.sin(rotated) * dx + Math.cos(rotated) * dy;
+        double g_dx = Math.cos(heading) * dx - Math.sin(heading) * dy;
+        double g_dy = Math.sin(heading) * dx + Math.cos(heading) * dy;
 
         Pose pose = new Pose(
-                dPose.getX() - g_dx,
-                dPose.getY() - g_dy,
-                dPose.getHeading() - drx
+                dPose.x - distanceUnits.fromMeters(g_dx),
+                dPose.y - distanceUnits.fromMeters(g_dy),
+                dPose.heading - angleUnits.fromRadians(oldHeading - heading)
         );
-        double localX =  Math.cos(rotated) * pose.getX() + Math.sin(rotated) * pose.getY();
-        double localY = -Math.sin(rotated) * pose.getX() + Math.cos(rotated) * pose.getY();
 
-        double x = speed * Math.signum(localX);
-        double y = speed * Math.signum(localY);
-        double rx = speed * Math.signum(pose.getHeading());
+        double localX = Math.cos(heading) * distanceUnits.toMeters(pose.x) +
+                Math.sin(heading) * distanceUnits.toMeters(pose.y);
+        double localY = -Math.sin(heading) * distanceUnits.toMeters(pose.x) +
+                Math.cos(heading) * distanceUnits.toMeters(pose.y);
 
-        frontLeft.setVelocity(x + y + rx, AngleUnit.RADIANS);
-        frontRight.setVelocity(x - y - rx, AngleUnit.RADIANS);
-        backLeft.setVelocity(x - y + rx, AngleUnit.RADIANS);
-        backRight.setVelocity(x + y - rx, AngleUnit.RADIANS);
+        // TODO: PID control
+        double wheel_x = speed * Math.signum(localX);
+        double wheel_y = speed * Math.signum(localY);
+        double wheel_rx = speed * Math.signum(pose.heading);
 
-        /*
-         * These telemetry calls would dump a
-         * massive amount of data, so we only log
-         * if we enable DEBUG when compiling
-         */
+        frontLeft.setVelocity(wheel_x + wheel_y + wheel_rx, AngleUnit.RADIANS);
+        frontRight.setVelocity(wheel_x - wheel_y - wheel_rx, AngleUnit.RADIANS);
+        backLeft.setVelocity(wheel_x - wheel_y + wheel_rx, AngleUnit.RADIANS);
+        backRight.setVelocity(wheel_x + wheel_y - wheel_rx, AngleUnit.RADIANS);
+
         if(DEBUG) {
-            telemetry.addData("Moved",
-                    String.format(Locale.ENGLISH, "%f,%f,%f", g_dx, g_dy, drx));
-            telemetry.addData("Moved local",
-                    String.format(Locale.ENGLISH, "%f,%f", dx, dy));
-            telemetry.addData("Radians",
-                    String.format(Locale.ENGLISH, "%f,%f,%f,%f",
-                            flRadians, frRadians, blRadians, brRadians
-                    ));
-            telemetry.addData("Wrote",
-                    String.format(Locale.ENGLISH, "%f,%f,%f", x, y, rx));
-            telemetry.addData("Rotation", rotated);
-            telemetry.update();
+            telemetry.addData("Wheel", "%f %f %f %f",
+                    flRadians, frRadians, blRadians, brRadians
+            );
+            telemetry.addData("Local", "%f %f %f", dx, dy, (oldHeading - heading));
+            telemetry.addData("Global", "%f %f", g_dx, g_dy);
+            telemetry.addData("Next global", "%f %f %f",
+                    distanceUnits.toMeters(pose.x), distanceUnits.toMeters(pose.y),
+                    angleUnits.toRadians(pose.heading)
+            );
+            telemetry.addData("Next local", "%f %f", localX ,localY);
+            telemetry.addData("Heading", "%f", heading);
+            telemetry.addData("Wrote", "%f %f %f", wheel_x, wheel_y, wheel_rx);
         }
 
         oldFlEncoder = flEncoder;
         oldFrEncoder = frEncoder;
         oldBlEncoder = blEncoder;
         oldBrEncoder = brEncoder;
+        oldHeading = heading;
 
         return pose;
     }

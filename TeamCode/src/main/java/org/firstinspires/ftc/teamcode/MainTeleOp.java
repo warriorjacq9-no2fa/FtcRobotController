@@ -3,13 +3,10 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.IMU;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 
 /*
  * The FTC controller has two types of operation
@@ -49,11 +46,7 @@ public class MainTeleOp extends LinearOpMode {
 
     private double heading;
     private void runImu() {
-        heading = imu.getRobotOrientation(
-                AxesReference.EXTRINSIC,
-                AxesOrder.XYZ,
-                AngleUnit.RADIANS
-        ).thirdAngle;
+        heading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
         telemetry.addData("Heading", heading);
     }
 
@@ -127,6 +120,7 @@ public class MainTeleOp extends LinearOpMode {
             } else {
                 drive();
             }
+            telemetry.update();
         }
     }
 }
