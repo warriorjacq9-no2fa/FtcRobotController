@@ -115,7 +115,7 @@ public class MainTeleOp extends LinearOpMode {
         while(opModeIsActive()) {
             runImu();
             //runIntake();
-            if(gamepad1.right_trigger_pressed) {
+            if(gamepad1.right_trigger > 0.2) {
                 driveGlobal();
             } else {
                 drive();

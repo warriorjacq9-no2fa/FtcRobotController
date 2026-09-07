@@ -41,6 +41,7 @@ public class TestAuto extends OpMode {
         backLeft = hardwareMap.get(DcMotorEx.class, "backLeft");
         backRight = hardwareMap.get(DcMotorEx.class, "backRight");
         intake = hardwareMap.get(DcMotorEx.class, "intake");
+        imu = hardwareMap.get(IMU.class, "imu");
 
         driver = new Driver(frontLeft, frontRight, backLeft, backRight, imu, telemetry);
 
@@ -68,7 +69,7 @@ public class TestAuto extends OpMode {
          */
         switch(state) {
             case START_DRIVE:
-                pose = new Driver.Pose(1, 1, 0);
+                pose = new Driver.Pose(1, 0.25, 0.5 * 2 * Math.PI);
                 state = AutoState.DRIVING_WAIT;
                 break;
 
@@ -82,7 +83,7 @@ public class TestAuto extends OpMode {
 
             case START_ROTATE:
                 if(timer.seconds() < 2) break;
-                pose = new Driver.Pose(0, 0, 0.5 * Math.PI);
+                pose = new Driver.Pose(0, 0, 0.5 * 2 * Math.PI);
                 state = AutoState.ROTATE_WAIT;
                 break;
 

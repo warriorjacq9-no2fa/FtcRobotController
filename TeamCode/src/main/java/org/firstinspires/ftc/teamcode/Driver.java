@@ -13,21 +13,19 @@ public class Driver {
 
     public static final boolean DEBUG = true;
 
-    private static final double TOLERANCE_M = 0.01;
-    private static final double TOLERANCE_RAD = 0.01;
+    private static final double TOLERANCE_M = 0.005;
+    private static final double TOLERANCE_RAD = 0.0085;
 
     /* Counts per revolution, found on the product page for the motor */
     private static final double ENCODER_CPR = 384.5;
     private static final double WHEEL_RADIUS_M = 0.052;
-    private static final double TRACK_WIDTH_M = 0.75; /* Front-back from wheel centers */
-    private static final double WHEEL_BASE_M = 0.75; /* left-right from wheel centers */
-
-    private static final double MAX_SPEED_RAD = (1000) * ((2 * Math.PI) / 60);
+    private static final double TRACK_WIDTH_M = 0.4572; /* Front-back from wheel centers */
+    private static final double WHEEL_BASE_M = 0.4572; /* left-right from wheel centers */
 
     /* PID constants */
-    private static final double Kp = 0.5;
-    private static final double Ki = 0.001;
-    private static final double Kd = 0.005;
+    private static final double Kp = 0.25;
+    private static final double Ki = 0;
+    private static final double Kd = 0.0005;
 
 
     /*
@@ -62,6 +60,9 @@ public class Driver {
     double xIntegral = 0;
     double yIntegral = 0;
     double rxIntegral = 0;
+    double xDerivative = 0;
+    double yDerivative = 0;
+    double rxDerivative = 0;
     double oldXError = 0;
     double oldYError = 0;
     double oldRxError = 0;
@@ -122,6 +123,10 @@ public class Driver {
         while (angle > Math.PI) angle -= 2 * Math.PI;
         while (angle <= -Math.PI) angle += 2 * Math.PI;
         return angle;
+    }
+
+    double filter(double a, double b) {
+        return 0.2 * a + (1 - 0.2) * b;
     }
 
     /**
@@ -190,7 +195,7 @@ public class Driver {
                 Math.sin(heading) * distanceUnits.toMeters(pose.y);
         double yError = -Math.sin(heading) * distanceUnits.toMeters(pose.x) +
                 Math.cos(heading) * distanceUnits.toMeters(pose.y);
-        double rxError = normalize(angleUnits.toRadians(pose.heading)) *
+        double rxError = angleUnits.toRadians(pose.heading) *
                         (TRACK_WIDTH_M / 2 + WHEEL_BASE_M / 2) / WHEEL_RADIUS_M;
 
         double currentTime = loopTimer.seconds();
@@ -201,9 +206,13 @@ public class Driver {
         yIntegral += yError * loopTime;
         rxIntegral += rxError * loopTime;
 
-        double xUt = Kp * xError + Ki * xIntegral + Kd * ((xError - oldXError) / loopTime);
-        double yUt = Kp * yError + Ki * yIntegral + Kd * ((yError - oldYError) / loopTime);
-        double rxUt = Kp * rxError + Ki * rxIntegral + Kd * ((rxError - oldRxError) / loopTime);
+        xDerivative = filter((xError - oldXError) / loopTime, xDerivative);
+        yDerivative = filter((yError - oldYError) / loopTime, yDerivative);
+        rxDerivative = filter((rxError - oldRxError) / loopTime, rxDerivative);
+
+        double xUt = Kp * xError + Ki * xIntegral + Kd * xDerivative;
+        double yUt = Kp * yError + Ki * yIntegral + Kd * yDerivative;
+        double rxUt = Kp * rxError + Ki * rxIntegral + Kd * rxDerivative;
 
         oldXError = xError;
         oldYError = yError;
@@ -217,19 +226,6 @@ public class Driver {
         double frSpeed = wheelX - wheelY - wheelRx;
         double blSpeed = wheelX - wheelY + wheelRx;
         double brSpeed = wheelX + wheelY - wheelRx;
-
-        double maxSpeed = Math.max(
-                Math.max(Math.abs(flSpeed), Math.abs(frSpeed)),
-                Math.max(Math.abs(blSpeed), Math.abs(brSpeed))
-        );
-
-        if(maxSpeed > MAX_SPEED_RAD) {
-            double ratio = MAX_SPEED_RAD / maxSpeed;
-            flSpeed *= ratio;
-            frSpeed *= ratio;
-            blSpeed *= ratio;
-            brSpeed *= ratio;
-        }
 
         frontLeft.setVelocity(flSpeed, AngleUnit.RADIANS);
         frontRight.setVelocity(frSpeed, AngleUnit.RADIANS);
@@ -251,7 +247,13 @@ public class Driver {
                     flSpeed, frSpeed, blSpeed, brSpeed
             );
             telemetry.addData("PID out", "%f %f %f", xUt, yUt, rxUt);
-            telemetry.addData("PID integrals", "%f %f %f", xIntegral, yIntegral, rxIntegral);
+            telemetry.addData("PID integrals", "%f %f %f",
+                    xIntegral, yIntegral, rxIntegral
+            );
+            telemetry.addData("PID derivatives", "%f %f %f",
+                    xDerivative, yDerivative, rxDerivative
+            );
+            telemetry.addData("Loop time", "%f", loopTime);
         }
 
         oldFlEncoder = flEncoder;
