@@ -3,12 +3,11 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.IMU;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-
-import java.util.Locale;
 
 public class Driver {
 
@@ -20,9 +19,15 @@ public class Driver {
     /* Counts per revolution, found on the product page for the motor */
     private static final double ENCODER_CPR = 384.5;
     private static final double WHEEL_RADIUS_M = 0.052;
-    /* TODO: measure chassis */
-    private static final double CHASSIS_LENGTH_M = 0.300;
-    private static final double CHASSIS_WIDTH_M = 0.300;
+    private static final double TRACK_WIDTH_M = 0.75; /* Front-back from wheel centers */
+    private static final double WHEEL_BASE_M = 0.75; /* left-right from wheel centers */
+
+    private static final double MAX_SPEED_RAD = (1000) * ((2 * Math.PI) / 60);
+
+    /* PID constants */
+    private static final double Kp = 0.5;
+    private static final double Ki = 0.001;
+    private static final double Kd = 0.005;
 
 
     /*
@@ -33,7 +38,7 @@ public class Driver {
      * degrees for rotation
      */
     public static class Pose {
-        private final double x, y, heading;
+        public double x, y, heading;
         public Pose(double x, double y, double heading) {
             this.x = x;
             this.y = y;
@@ -52,6 +57,14 @@ public class Driver {
     double oldBrEncoder;
     double heading;
     double oldHeading;
+    ElapsedTime loopTimer = new ElapsedTime();
+    double lastTime = 0;
+    double xIntegral = 0;
+    double yIntegral = 0;
+    double rxIntegral = 0;
+    double oldXError = 0;
+    double oldYError = 0;
+    double oldRxError = 0;
 
     public Driver(
             DcMotorEx frontLeft, DcMotorEx frontRight,
@@ -105,6 +118,12 @@ public class Driver {
         telemetry.addData("Heading", heading);
     }
 
+    double normalize(double angle) {
+        while (angle > Math.PI) angle -= 2 * Math.PI;
+        while (angle <= -Math.PI) angle += 2 * Math.PI;
+        return angle;
+    }
+
     /**
      * Drive to a given relative pose in the
      * global frame
@@ -156,43 +175,83 @@ public class Driver {
         double dx = (WHEEL_RADIUS_M / 4) * (flRadians + frRadians + blRadians + brRadians);
         double dy = (WHEEL_RADIUS_M / 4) * (flRadians - frRadians - blRadians + brRadians);
 
-        double g_dx = Math.cos(heading) * dx - Math.sin(heading) * dy;
-        double g_dy = Math.sin(heading) * dx + Math.cos(heading) * dy;
+        double avgHeading = oldHeading + normalize(heading - oldHeading) / 2;
+        double g_dx = Math.cos(avgHeading) * dx - Math.sin(avgHeading) * dy;
+        double g_dy = Math.sin(avgHeading) * dx + Math.cos(avgHeading) * dy;
 
         Pose pose = new Pose(
                 dPose.x - distanceUnits.fromMeters(g_dx),
                 dPose.y - distanceUnits.fromMeters(g_dy),
-                dPose.heading - angleUnits.fromRadians(oldHeading - heading)
+                dPose.heading - angleUnits.fromRadians(normalize(heading - oldHeading))
         );
 
-        double localX = Math.cos(heading) * distanceUnits.toMeters(pose.x) +
+        double wheelSpeed = distanceUnits.toMeters(speed) / WHEEL_RADIUS_M;
+        double xError = Math.cos(heading) * distanceUnits.toMeters(pose.x) +
                 Math.sin(heading) * distanceUnits.toMeters(pose.y);
-        double localY = -Math.sin(heading) * distanceUnits.toMeters(pose.x) +
+        double yError = -Math.sin(heading) * distanceUnits.toMeters(pose.x) +
                 Math.cos(heading) * distanceUnits.toMeters(pose.y);
+        double rxError = normalize(angleUnits.toRadians(pose.heading)) *
+                        (TRACK_WIDTH_M / 2 + WHEEL_BASE_M / 2) / WHEEL_RADIUS_M;
 
-        // TODO: PID control
-        double wheel_x = speed * Math.signum(localX);
-        double wheel_y = speed * Math.signum(localY);
-        double wheel_rx = speed * Math.signum(pose.heading);
+        double currentTime = loopTimer.seconds();
+        double loopTime = currentTime - lastTime;
+        lastTime = currentTime;
 
-        frontLeft.setVelocity(wheel_x + wheel_y + wheel_rx, AngleUnit.RADIANS);
-        frontRight.setVelocity(wheel_x - wheel_y - wheel_rx, AngleUnit.RADIANS);
-        backLeft.setVelocity(wheel_x - wheel_y + wheel_rx, AngleUnit.RADIANS);
-        backRight.setVelocity(wheel_x + wheel_y - wheel_rx, AngleUnit.RADIANS);
+        xIntegral += xError * loopTime;
+        yIntegral += yError * loopTime;
+        rxIntegral += rxError * loopTime;
+
+        double xUt = Kp * xError + Ki * xIntegral + Kd * ((xError - oldXError) / loopTime);
+        double yUt = Kp * yError + Ki * yIntegral + Kd * ((yError - oldYError) / loopTime);
+        double rxUt = Kp * rxError + Ki * rxIntegral + Kd * ((rxError - oldRxError) / loopTime);
+
+        oldXError = xError;
+        oldYError = yError;
+        oldRxError = rxError;
+
+        double wheelX = wheelSpeed * xUt;
+        double wheelY = wheelSpeed * yUt;
+        double wheelRx = wheelSpeed * rxUt;
+
+        double flSpeed = wheelX + wheelY + wheelRx;
+        double frSpeed = wheelX - wheelY - wheelRx;
+        double blSpeed = wheelX - wheelY + wheelRx;
+        double brSpeed = wheelX + wheelY - wheelRx;
+
+        double maxSpeed = Math.max(
+                Math.max(Math.abs(flSpeed), Math.abs(frSpeed)),
+                Math.max(Math.abs(blSpeed), Math.abs(brSpeed))
+        );
+
+        if(maxSpeed > MAX_SPEED_RAD) {
+            double ratio = MAX_SPEED_RAD / maxSpeed;
+            flSpeed *= ratio;
+            frSpeed *= ratio;
+            blSpeed *= ratio;
+            brSpeed *= ratio;
+        }
+
+        frontLeft.setVelocity(flSpeed, AngleUnit.RADIANS);
+        frontRight.setVelocity(frSpeed, AngleUnit.RADIANS);
+        backLeft.setVelocity(blSpeed, AngleUnit.RADIANS);
+        backRight.setVelocity(brSpeed, AngleUnit.RADIANS);
 
         if(DEBUG) {
-            telemetry.addData("Wheel", "%f %f %f %f",
+            telemetry.addData("Moved wheel", "%f %f %f %f",
                     flRadians, frRadians, blRadians, brRadians
             );
-            telemetry.addData("Local", "%f %f %f", dx, dy, (oldHeading - heading));
-            telemetry.addData("Global", "%f %f", g_dx, g_dy);
+            telemetry.addData("Moved local", "%f %f %f", dx, dy, (oldHeading - heading));
+            telemetry.addData("Moved global", "%f %f", g_dx, g_dy);
             telemetry.addData("Next global", "%f %f %f",
                     distanceUnits.toMeters(pose.x), distanceUnits.toMeters(pose.y),
                     angleUnits.toRadians(pose.heading)
             );
-            telemetry.addData("Next local", "%f %f", localX ,localY);
-            telemetry.addData("Heading", "%f", heading);
-            telemetry.addData("Wrote", "%f %f %f", wheel_x, wheel_y, wheel_rx);
+            telemetry.addData("Error", "%f %f %f", xError, yError, rxError);
+            telemetry.addData("Wheel speeds", "%f %f %f %f",
+                    flSpeed, frSpeed, blSpeed, brSpeed
+            );
+            telemetry.addData("PID out", "%f %f %f", xUt, yUt, rxUt);
+            telemetry.addData("PID integrals", "%f %f %f", xIntegral, yIntegral, rxIntegral);
         }
 
         oldFlEncoder = flEncoder;
