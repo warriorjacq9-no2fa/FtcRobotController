@@ -4,6 +4,7 @@ import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -19,8 +20,8 @@ public class Driver {
     /* Counts per revolution, found on the product page for the motor */
     private static final double ENCODER_CPR = 384.5;
     private static final double WHEEL_RADIUS_M = 0.052;
-    private static final double TRACK_WIDTH_M = 0.4572; /* Front-back from wheel centers */
-    private static final double WHEEL_BASE_M = 0.4572; /* left-right from wheel centers */
+    private static final double TRACK_WIDTH_M = 0.34; /* Front-back from wheel centers */
+    private static final double WHEEL_BASE_M = 0.42; /* left-right from wheel centers */
 
     /* PID constants */
     private static final double Kp = 0.25;
