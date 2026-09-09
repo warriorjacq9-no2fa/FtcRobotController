@@ -84,7 +84,7 @@ public class MainTeleOp extends LinearOpMode {
         frontRight = hardwareMap.get(DcMotorEx.class, "frontRight");
         backLeft = hardwareMap.get(DcMotorEx.class, "backLeft");
         backRight = hardwareMap.get(DcMotorEx.class, "backRight");
-        //intake = hardwareMap.get(DcMotorEx.class, "intake");
+        intake = hardwareMap.get(DcMotorEx.class, "intake");
         imu = hardwareMap.get(IMU.class, "imu");
         RevHubOrientationOnRobot orientationOnRobot = new RevHubOrientationOnRobot(
                 RevHubOrientationOnRobot.LogoFacingDirection.FORWARD,
@@ -114,7 +114,7 @@ public class MainTeleOp extends LinearOpMode {
 
         while(opModeIsActive()) {
             runImu();
-            //runIntake();
+            runIntake();
             if(gamepad1.right_trigger > 0.2) {
                 driveGlobal();
             } else {
