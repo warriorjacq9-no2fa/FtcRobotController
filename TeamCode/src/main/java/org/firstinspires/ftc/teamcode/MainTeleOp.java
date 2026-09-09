@@ -23,7 +23,7 @@ public class MainTeleOp extends LinearOpMode {
      * from mm/s
      */
     private static final double SPEED = (750) / 52.0;
-    private static final double INTAKE_SPEED = 110;
+    private static final double INTAKE_SPEED = 120;
 
     private DcMotorEx frontLeft;
     private DcMotorEx frontRight;
@@ -49,15 +49,21 @@ public class MainTeleOp extends LinearOpMode {
         heading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
         telemetry.addData("Heading", heading);
     }
+    private double intakeDirection = 0;
 
     private void runIntake() {
         if(gamepad1.a)
-            intake.setVelocity(INTAKE_SPEED, AngleUnit.RADIANS);
+            if(intakeDirection < 0)
+                intakeDirection = 0;
+            else
+                intakeDirection = 1;
         else if(gamepad1.b)
-            intake.setVelocity(-INTAKE_SPEED, AngleUnit.RADIANS);
-        else
-            intake.setVelocity(0);
+            if(intakeDirection > 0)
+                intakeDirection = 0;
+            else
+                intakeDirection = -1;
 
+        intake.setVelocity(-INTAKE_SPEED, AngleUnit.RADIANS);
     }
     private void driveGlobal() {
         double x = -gamepad1.left_stick_y;
@@ -115,6 +121,9 @@ public class MainTeleOp extends LinearOpMode {
         while(opModeIsActive()) {
             runImu();
             runIntake();
+            if(gamepad1.right_bumper) {
+                imu.resetYaw();
+            }
             if(gamepad1.right_trigger > 0.2) {
                 driveGlobal();
             } else {
