@@ -23,7 +23,7 @@ public class MainTeleOp extends LinearOpMode {
      * from mm/s
      */
     private static final double SPEED = (750) / 52.0;
-    private static final double INTAKE_SPEED = (1000) * ((2 * Math.PI) / 60);
+    private static final double INTAKE_SPEED = 110;
 
     private DcMotorEx frontLeft;
     private DcMotorEx frontRight;
@@ -52,9 +52,9 @@ public class MainTeleOp extends LinearOpMode {
 
     private void runIntake() {
         if(gamepad1.a)
-            intake.setVelocity(INTAKE_SPEED);
+            intake.setVelocity(INTAKE_SPEED, AngleUnit.RADIANS);
         else if(gamepad1.b)
-            intake.setVelocity(-INTAKE_SPEED);
+            intake.setVelocity(-INTAKE_SPEED, AngleUnit.RADIANS);
         else
             intake.setVelocity(0);
 
