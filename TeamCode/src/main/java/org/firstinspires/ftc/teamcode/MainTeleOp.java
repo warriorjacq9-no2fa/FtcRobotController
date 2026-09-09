@@ -63,7 +63,7 @@ public class MainTeleOp extends LinearOpMode {
             else
                 intakeDirection = -1;
 
-        intake.setVelocity(-INTAKE_SPEED, AngleUnit.RADIANS);
+        intake.setVelocity(intakeDirection * INTAKE_SPEED, AngleUnit.RADIANS);
     }
     private void driveGlobal() {
         double x = -gamepad1.left_stick_y;
