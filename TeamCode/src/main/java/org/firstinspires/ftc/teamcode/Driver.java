@@ -50,23 +50,23 @@ public class Driver {
     private final DcMotorEx backRight;
     private final IMU imu;
     private final Telemetry telemetry;
-    double oldFlEncoder;
-    double oldFrEncoder;
-    double oldBlEncoder;
-    double oldBrEncoder;
-    double heading;
-    double oldHeading;
-    ElapsedTime loopTimer = new ElapsedTime();
-    double lastTime = 0;
-    double xIntegral = 0;
-    double yIntegral = 0;
-    double rxIntegral = 0;
-    double xDerivative = 0;
-    double yDerivative = 0;
-    double rxDerivative = 0;
-    double oldXError = 0;
-    double oldYError = 0;
-    double oldRxError = 0;
+    private double oldFlEncoder;
+    private double oldFrEncoder;
+    private double oldBlEncoder;
+    private double oldBrEncoder;
+    private double heading;
+    private double oldHeading;
+    private ElapsedTime loopTimer = new ElapsedTime();
+    private double lastTime = 0;
+    private double xIntegral = 0;
+    private double yIntegral = 0;
+    private double rxIntegral = 0;
+    private double xDerivative = 0;
+    private double yDerivative = 0;
+    private double rxDerivative = 0;
+    private double oldXError = 0;
+    private double oldYError = 0;
+    private double oldRxError = 0;
 
     public Driver(
             DcMotorEx frontLeft, DcMotorEx frontRight,
