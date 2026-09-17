@@ -4,11 +4,14 @@ import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.teamcode.commands.Command;
+
+import java.util.ArrayDeque;
+import java.util.Queue;
 
 public class Driver {
 
@@ -24,26 +27,9 @@ public class Driver {
     private static final double WHEEL_BASE_M = 0.42; /* left-right from wheel centers */
 
     /* PID constants */
-    private static final double Kp = 0.25;
+    private static final double Kp = 0.1;
     private static final double Ki = 0;
-    private static final double Kd = 0.0005;
-
-
-    /*
-     * Since we are going to be using Limelight
-     * cameras, we will also be using their
-     * units in the autonomous code
-     * Limelight uses meters for position and
-     * degrees for rotation
-     */
-    public static class Pose {
-        public double x, y, heading;
-        public Pose(double x, double y, double heading) {
-            this.x = x;
-            this.y = y;
-            this.heading = heading;
-        }
-    }
+    private static final double Kd = 0;
     private final DcMotorEx frontLeft;
     private final DcMotorEx frontRight;
     private final DcMotorEx backLeft;
@@ -113,11 +99,6 @@ public class Driver {
 
         telemetry.addLine("Driver initialized");
         telemetry.update();
-    }
-
-    public void loop() {
-        heading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
-        telemetry.addData("Heading", heading);
     }
 
     double normalize(double angle) {
@@ -264,5 +245,58 @@ public class Driver {
         oldHeading = heading;
 
         return pose;
+    }
+
+    private enum DriverState {
+        GET_COMMAND,
+        RUN_COMMAND
+    }
+
+    private DriverState state;
+    private Queue<Command> commands = new ArrayDeque<>();
+    private Command currentCmd;
+
+    /**
+     * To be called during loop() in an OpMode
+     */
+    public void loop() {
+        heading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
+        telemetry.addData("Heading", heading);
+        switch(state) {
+            case GET_COMMAND:
+                Command cmd = commands.peek();
+                if(cmd != null) {
+                    currentCmd = cmd;
+                    commands.remove();
+                    state = DriverState.RUN_COMMAND;
+                }
+                break;
+
+            case RUN_COMMAND:
+                currentCmd.run();
+                if(currentCmd.isDone())
+                    state = DriverState.GET_COMMAND;
+                break;
+        }
+    }
+
+    /**
+     * Queue a command in the command queue to
+     * be processed and executed
+     *
+     * @param cmd Command to be queued
+     */
+    public void doCommand(Command cmd) {
+        commands.add(cmd);
+    }
+
+    /**
+     * Check if current command is done
+     *
+     * @return True if done, false otherwise
+     */
+    public boolean isCurrentCommandDone() {
+        if(currentCmd == null) return true;
+        return currentCmd.isDone();
     }
 }

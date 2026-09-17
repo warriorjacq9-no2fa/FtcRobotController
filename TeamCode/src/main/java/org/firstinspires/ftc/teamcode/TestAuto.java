@@ -4,10 +4,11 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.IMU;
-import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.teamcode.commands.DriveCommand;
+import org.firstinspires.ftc.teamcode.commands.WaitCommand;
 
 @Autonomous(name="TestAuto")
 public class TestAuto extends OpMode {
@@ -23,10 +24,7 @@ public class TestAuto extends OpMode {
     private IMU imu;
 
     private enum AutoState {
-        START_DRIVE,
-        DRIVING_WAIT,
-        START_ROTATE,
-        ROTATE_WAIT,
+        INIT,
         COMPLETE
     }
 
@@ -34,7 +32,7 @@ public class TestAuto extends OpMode {
 
     @Override
     public void init() {
-        state = AutoState.START_DRIVE;
+        state = AutoState.INIT;
 
         frontLeft = hardwareMap.get(DcMotorEx.class, "frontLeft");
         frontRight = hardwareMap.get(DcMotorEx.class, "frontRight");
@@ -49,54 +47,29 @@ public class TestAuto extends OpMode {
         telemetry.update();
     }
 
-    ElapsedTime timer = new ElapsedTime();
-    private Driver.Pose pose;
-
     @Override
     public void loop() {
-        driver.loop();
-        /*
-         * In autonomous code we commonly use state
-         * machines to execute actions in a certain
-         * order. The standard procedure is to create
-         * an enum (in this case AutoState) and write
-         * out each step the robot will take. In
-         * our case, the robot will start driving
-         * (START_DRIVE), wait for the driving function
-         * to end (DRIVING_WAIT) and exit (COMPLETE)
-         * To exit we don't do anything since the
-         * state doesn't change unless we change it.
-         */
         switch(state) {
-            case START_DRIVE:
-                pose = new Driver.Pose(1, 0.25, 0.5 * 2 * Math.PI);
-                state = AutoState.DRIVING_WAIT;
-                break;
-
-            case DRIVING_WAIT:
-                pose = driver.drive(pose, SPEED, AngleUnit.RADIANS, DistanceUnit.METER);
-                if(pose == null) {
-                    timer.reset();
-                    state = AutoState.START_ROTATE;
-                }
-                break;
-
-            case START_ROTATE:
-                if(timer.seconds() < 2) break;
-                pose = new Driver.Pose(0, 0, 0.5 * 2 * Math.PI);
-                state = AutoState.ROTATE_WAIT;
-                break;
-
-            case ROTATE_WAIT:
-                pose = driver.drive(pose, SPEED, AngleUnit.RADIANS, DistanceUnit.METER);
-                if(pose == null)
-                    state = AutoState.COMPLETE;
+            case INIT:
+                driver.doCommand(new DriveCommand(
+                        new Pose(1, 0.25, 0), SPEED,
+                        AngleUnit.RADIANS, DistanceUnit.METER,
+                        driver
+                        ));
+                driver.doCommand(new WaitCommand(1.0));
+                driver.doCommand(new DriveCommand(
+                        new Pose(0, 0, 0.5 * 2 * Math.PI), SPEED,
+                        AngleUnit.RADIANS, DistanceUnit.METER,
+                        driver
+                ));
+                state = AutoState.COMPLETE;
                 break;
 
             case COMPLETE:
                 telemetry.addLine("Done");
                 break;
         }
+        driver.loop();
         telemetry.update();
     }
 }
