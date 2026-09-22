@@ -23,8 +23,8 @@ public class Driver {
     /* Counts per revolution, found on the product page for the motor */
     private static final double ENCODER_CPR = 384.5;
     private static final double WHEEL_RADIUS_M = 0.052;
-    private static final double TRACK_WIDTH_M = 0.285; /* Front-back from wheel centers */
-    private static final double WHEEL_BASE_M = 0.415; /* left-right from wheel centers */
+    private static final double ROBOT_LENGTH_M = 0.285; /* Front-back from wheel centers */
+    private static final double ROBOT_WIDTH_M = 0.415; /* left-right from wheel centers */
 
     /* PID constants */
     private static final double Kp = 10;
@@ -73,6 +73,9 @@ public class Driver {
         );
         imu.initialize(new IMU.Parameters(orientationOnRobot));
         imu.resetYaw();
+
+        heading = 0;
+        oldHeading = 0;
 
         frontLeft.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
         frontRight.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
@@ -130,6 +133,7 @@ public class Driver {
             Pose dPose, double speed,
             AngleUnit angleUnits, DistanceUnit distanceUnits
     ) {
+        heading = normalize(imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS));
         if(dPose == null) {
             frontLeft.setPower(0);
             frontRight.setPower(0);
@@ -165,17 +169,17 @@ public class Driver {
         double dx = (WHEEL_RADIUS_M / 4) * (flRadians + frRadians + blRadians + brRadians);
         double dy = (WHEEL_RADIUS_M / 4) * (flRadians - frRadians - blRadians + brRadians);
 
-        double avgHeading = oldHeading + normalize(heading - oldHeading) / 2;
-        double g_dx = Math.cos(avgHeading) * dx - Math.sin(avgHeading) * dy;
-        double g_dy = Math.sin(avgHeading) * dx + Math.cos(avgHeading) * dy;
+        double dHeading = normalize(heading - oldHeading);
+
+        double g_dx = Math.cos(heading) * dx - Math.sin(heading) * dy;
+        double g_dy = Math.sin(heading) * dx + Math.cos(heading) * dy;
 
         Pose pose = new Pose(
                 dPose.x - distanceUnits.fromMeters(g_dx),
                 dPose.y - distanceUnits.fromMeters(g_dy),
-                dPose.heading - angleUnits.fromRadians(normalize(heading - oldHeading))
+                dPose.heading - angleUnits.fromRadians(dHeading)
         );
 
-        double wheelSpeed = distanceUnits.toMeters(speed) / WHEEL_RADIUS_M;
         double xError = Math.cos(heading) * distanceUnits.toMeters(pose.x) +
                 Math.sin(heading) * distanceUnits.toMeters(pose.y);
         double yError = -Math.sin(heading) * distanceUnits.toMeters(pose.x) +
