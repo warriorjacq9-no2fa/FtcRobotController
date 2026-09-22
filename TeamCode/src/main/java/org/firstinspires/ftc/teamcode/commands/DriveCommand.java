@@ -1,9 +1,13 @@
 package org.firstinspires.ftc.teamcode.commands;
 
+import androidx.annotation.NonNull;
+
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.Driver;
 import org.firstinspires.ftc.teamcode.Pose;
+
+import java.util.Locale;
 
 public class DriveCommand extends Command {
     private enum DriveState {
@@ -46,5 +50,11 @@ public class DriveCommand extends Command {
             case COMPLETE:
                 break;
         }
+    }
+
+    @NonNull
+    public String toString() {
+        return String.format(Locale.ENGLISH, "DriveCommand(%s): %s",
+                this.pose.toString(), this.state.toString());
     }
 }

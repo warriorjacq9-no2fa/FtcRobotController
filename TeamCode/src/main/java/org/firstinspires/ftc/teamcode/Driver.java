@@ -278,6 +278,9 @@ public class Driver {
                     state = DriverState.GET_COMMAND;
                 break;
         }
+        telemetry.addData("Driver state", state);
+        telemetry.addData("currentCmd", currentCmd);
+        telemetry.addData("Commands left", commands.size());
     }
 
     /**
