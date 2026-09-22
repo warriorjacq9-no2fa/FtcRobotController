@@ -93,8 +93,8 @@ public class MainTeleOp extends LinearOpMode {
         intake = hardwareMap.get(DcMotorEx.class, "intake");
         imu = hardwareMap.get(IMU.class, "imu");
         RevHubOrientationOnRobot orientationOnRobot = new RevHubOrientationOnRobot(
-                RevHubOrientationOnRobot.LogoFacingDirection.FORWARD,
-                RevHubOrientationOnRobot.UsbFacingDirection.UP
+                RevHubOrientationOnRobot.LogoFacingDirection.DOWN,
+                RevHubOrientationOnRobot.UsbFacingDirection.RIGHT
         );
         imu.initialize(new IMU.Parameters(orientationOnRobot));
 
