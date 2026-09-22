@@ -26,6 +26,7 @@ public class MainAuto extends OpMode {
 
     private enum AutoState {
         INIT,
+        WAIT,
         COMPLETE
     }
 
@@ -85,8 +86,15 @@ public class MainAuto extends OpMode {
                         AngleUnit.RADIANS, DistanceUnit.INCH,
                         driver
                 ));
-                state = AutoState.COMPLETE;
+                state = AutoState.WAIT;
                 break;
+
+            case WAIT:
+                if(driver.isCommandsEmpty())
+                    state = AutoState.COMPLETE;
+                break;
+
+
 
             case COMPLETE:
                 telemetry.addLine("Done");

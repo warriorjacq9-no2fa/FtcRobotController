@@ -18,17 +18,17 @@ public class Driver {
     public static final boolean DEBUG = true;
 
     private static final double TOLERANCE_M = 0.005;
-    private static final double TOLERANCE_RAD = 0.0085;
+    private static final double TOLERANCE_RAD = 0.02;
 
     /* Counts per revolution, found on the product page for the motor */
     private static final double ENCODER_CPR = 384.5;
     private static final double WHEEL_RADIUS_M = 0.052;
-    private static final double TRACK_WIDTH_M = 0.34; /* Front-back from wheel centers */
-    private static final double WHEEL_BASE_M = 0.42; /* left-right from wheel centers */
+    private static final double TRACK_WIDTH_M = 0.285; /* Front-back from wheel centers */
+    private static final double WHEEL_BASE_M = 0.415; /* left-right from wheel centers */
 
     /* PID constants */
-    private static final double Kp = 0.1;
-    private static final double Ki = 0;
+    private static final double Kp = 10;
+    private static final double Ki = 0.025;
     private static final double Kd = 0;
     private final DcMotorEx frontLeft;
     private final DcMotorEx frontRight;
@@ -68,10 +68,11 @@ public class Driver {
         this.telemetry = telemetry;
 
         RevHubOrientationOnRobot orientationOnRobot = new RevHubOrientationOnRobot(
-                RevHubOrientationOnRobot.LogoFacingDirection.FORWARD,
-                RevHubOrientationOnRobot.UsbFacingDirection.UP
+                RevHubOrientationOnRobot.LogoFacingDirection.DOWN,
+                RevHubOrientationOnRobot.UsbFacingDirection.RIGHT
         );
         imu.initialize(new IMU.Parameters(orientationOnRobot));
+        imu.resetYaw();
 
         frontLeft.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
         frontRight.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
@@ -96,6 +97,8 @@ public class Driver {
         frontRight.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
         backLeft.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
         backRight.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+
+        state = DriverState.GET_COMMAND;
 
         telemetry.addLine("Driver initialized");
         telemetry.update();
@@ -177,8 +180,7 @@ public class Driver {
                 Math.sin(heading) * distanceUnits.toMeters(pose.y);
         double yError = -Math.sin(heading) * distanceUnits.toMeters(pose.x) +
                 Math.cos(heading) * distanceUnits.toMeters(pose.y);
-        double rxError = angleUnits.toRadians(pose.heading) *
-                        (TRACK_WIDTH_M / 2 + WHEEL_BASE_M / 2) / WHEEL_RADIUS_M;
+        double rxError = angleUnits.toRadians(pose.heading);
 
         double currentTime = loopTimer.seconds();
         double loopTime = currentTime - lastTime;
@@ -200,9 +202,9 @@ public class Driver {
         oldYError = yError;
         oldRxError = rxError;
 
-        double wheelX = wheelSpeed * xUt;
-        double wheelY = wheelSpeed * yUt;
-        double wheelRx = wheelSpeed * rxUt;
+        double wheelX = xUt;
+        double wheelY = yUt;
+        double wheelRx = -rxUt;
 
         double flSpeed = wheelX + wheelY + wheelRx;
         double frSpeed = wheelX - wheelY - wheelRx;
@@ -260,7 +262,7 @@ public class Driver {
      * To be called during loop() in an OpMode
      */
     public void loop() {
-        heading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
+        heading = normalize(imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS));
         telemetry.addData("Heading", heading);
         switch(state) {
             case GET_COMMAND:
@@ -301,5 +303,14 @@ public class Driver {
     public boolean isCurrentCommandDone() {
         if(currentCmd == null) return true;
         return currentCmd.isDone();
+    }
+
+    /**
+     * Check if the command queue is empty
+     *
+     * @return True if empty, false otherwise
+     */
+    public boolean isCommandsEmpty() {
+        return commands.isEmpty();
     }
 }

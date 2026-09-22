@@ -25,6 +25,7 @@ public class TestAuto extends OpMode {
 
     private enum AutoState {
         INIT,
+        WAIT,
         COMPLETE
     }
 
@@ -52,7 +53,7 @@ public class TestAuto extends OpMode {
         switch(state) {
             case INIT:
                 driver.doCommand(new DriveCommand(
-                        new Pose(1, 0.25, 0), SPEED,
+                        new Pose(1, 1, 0), SPEED,
                         AngleUnit.RADIANS, DistanceUnit.METER,
                         driver
                         ));
@@ -62,7 +63,12 @@ public class TestAuto extends OpMode {
                         AngleUnit.RADIANS, DistanceUnit.METER,
                         driver
                 ));
-                state = AutoState.COMPLETE;
+                state = AutoState.WAIT;
+                break;
+
+            case WAIT:
+                if(driver.isCommandsEmpty())
+                    state = AutoState.COMPLETE;
                 break;
 
             case COMPLETE:
