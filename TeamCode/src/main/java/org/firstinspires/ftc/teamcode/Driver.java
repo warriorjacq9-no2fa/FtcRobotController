@@ -17,7 +17,7 @@ public class Driver {
 
     public static final boolean DEBUG = true;
 
-    private static final double TOLERANCE_M = 0.005;
+    private static final double TOLERANCE_M = 0.01;
     private static final double TOLERANCE_RAD = 0.02;
 
     /* Counts per revolution, found on the product page for the motor */

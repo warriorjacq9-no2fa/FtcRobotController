@@ -55,34 +55,34 @@ public class MainAuto extends OpMode {
             case INIT:
                 intake.setVelocity(INTAKE_SPEED);
                 driver.doCommand(new DriveCommand(
-                        new Pose(-18, 0, 0), SPEED,
+                        new Pose(18, 0, 0), SPEED,
                         AngleUnit.RADIANS, DistanceUnit.INCH,
                         driver
                 ));
 
                 // TODO: shoot x4
-                driver.doCommand(new WaitCommand(0.25));
+                driver.doCommand(new WaitCommand(1));
 
                 driver.doCommand(new DriveCommand(
-                        new Pose(-18, 36, -0.25 * 2 * Math.PI), SPEED,
+                        new Pose(18, -36, -0.25 * 2 * Math.PI), SPEED,
                         AngleUnit.RADIANS, DistanceUnit.INCH,
                         driver
                 ));
 
                 // TODO: intake from flower
-                driver.doCommand(new WaitCommand(0.25));
+                driver.doCommand(new WaitCommand(1));
 
                 driver.doCommand(new DriveCommand(
-                        new Pose(-78, -36, -0.75 * 2 * Math.PI), SPEED,
+                        new Pose(78, 36, -0.75 * 2 * Math.PI), SPEED,
                         AngleUnit.RADIANS, DistanceUnit.INCH,
                         driver
                 ));
 
                 // TODO: shoot x4
-                driver.doCommand(new WaitCommand(0.25));
+                driver.doCommand(new WaitCommand(1));
 
                 driver.doCommand(new DriveCommand(
-                        new Pose(12, 42, 0), SPEED,
+                        new Pose(-12, -42, 0), SPEED,
                         AngleUnit.RADIANS, DistanceUnit.INCH,
                         driver
                 ));

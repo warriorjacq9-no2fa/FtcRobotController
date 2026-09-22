@@ -63,6 +63,12 @@ public class TestAuto extends OpMode {
                         AngleUnit.RADIANS, DistanceUnit.METER,
                         driver
                 ));
+                driver.doCommand(new WaitCommand(1.0));
+                driver.doCommand(new DriveCommand(
+                        new Pose(-1, -1, 0.5 * 2 * Math.PI), SPEED,
+                        AngleUnit.RADIANS, DistanceUnit.METER,
+                        driver
+                ));
                 state = AutoState.WAIT;
                 break;
 
