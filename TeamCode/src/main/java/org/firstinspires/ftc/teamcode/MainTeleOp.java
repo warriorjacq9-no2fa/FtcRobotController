@@ -44,9 +44,14 @@ public class MainTeleOp extends LinearOpMode {
         backRight.setVelocity(x + y - rx, AngleUnit.RADIANS);
     }
 
+    double normalize(double angle) {
+        while (angle > Math.PI) angle -= 2 * Math.PI;
+        while (angle <= -Math.PI) angle += 2 * Math.PI;
+        return angle;
+    }
     private double heading;
     private void runImu() {
-        heading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
+        heading = normalize(-imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS));
         telemetry.addData("Heading", heading);
     }
     private double intakeDirection = 0;

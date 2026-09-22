@@ -133,7 +133,7 @@ public class Driver {
             Pose dPose, double speed,
             AngleUnit angleUnits, DistanceUnit distanceUnits
     ) {
-        heading = normalize(imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS));
+        heading = normalize(-imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS));
         if(dPose == null) {
             frontLeft.setPower(0);
             frontRight.setPower(0);
@@ -208,7 +208,7 @@ public class Driver {
 
         double wheelX = xUt;
         double wheelY = yUt;
-        double wheelRx = -rxUt;
+        double wheelRx = rxUt;
 
         double flSpeed = wheelX + wheelY + wheelRx;
         double frSpeed = wheelX - wheelY - wheelRx;
@@ -266,7 +266,7 @@ public class Driver {
      * To be called during loop() in an OpMode
      */
     public void loop() {
-        heading = normalize(imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS));
+        heading = normalize(-imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS));
         telemetry.addData("Heading", heading);
         switch(state) {
             case GET_COMMAND:
