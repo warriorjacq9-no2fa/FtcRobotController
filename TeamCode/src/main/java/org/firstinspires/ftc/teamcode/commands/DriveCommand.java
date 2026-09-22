@@ -54,6 +54,7 @@ public class DriveCommand extends Command {
 
     @NonNull
     public String toString() {
+        if(this.pose == null) return "";
         return String.format(Locale.ENGLISH, "DriveCommand(%s): %s",
                 this.pose.toString(), this.state.toString());
     }

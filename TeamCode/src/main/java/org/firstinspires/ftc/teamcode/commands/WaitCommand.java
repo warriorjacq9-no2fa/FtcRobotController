@@ -28,7 +28,7 @@ public class WaitCommand extends Command {
                 break;
 
             case RUN:
-                if(timer.seconds() == seconds)
+                if(timer.seconds() >= seconds)
                     done = true;
                 break;
         }
