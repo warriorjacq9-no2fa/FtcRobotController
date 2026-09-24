@@ -14,8 +14,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
  * TeleOp is how the drive team operates the robot
  * and is usually pretty simple
  */
-@TeleOp(name="MainTeleOp")
-public class MainTeleOp extends LinearOpMode {
+@TeleOp(name="TurboTeleOp")
+public class TurboTeleOp extends LinearOpMode {
 
     /*
      * Speed is in degrees per second, so we
@@ -51,7 +51,7 @@ public class MainTeleOp extends LinearOpMode {
     }
     private double heading;
     private void runImu() {
-        heading = normalize(-imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS));
+        heading = normalize(imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS));
         telemetry.addData("Heading", heading);
     }
     private double intakeDirection = 0;

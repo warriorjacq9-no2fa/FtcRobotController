@@ -11,10 +11,11 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.commands.DriveCommand;
 import org.firstinspires.ftc.teamcode.commands.WaitCommand;
 
-@Autonomous(name="TestAuto")
-public class TestAuto extends OpMode {
+@Autonomous(name="TurboAuto")
+public class TurboAuto extends OpMode {
 
     private static final double SPEED = (500) / 52.0;
+    private static final double INTAKE_SPEED = 120;
 
     private Driver driver;
     private DcMotorEx frontLeft;
@@ -50,8 +51,8 @@ public class TestAuto extends OpMode {
         imu.initialize(new IMU.Parameters(orientationOnRobot));
         imu.resetYaw();
 
-        frontLeft.setDirection(DcMotorEx.Direction.REVERSE);
-        backLeft.setDirection(DcMotorEx.Direction.REVERSE);
+        frontRight.setDirection(DcMotorEx.Direction.REVERSE);
+        backRight.setDirection(DcMotorEx.Direction.REVERSE);
 
         driver = new Driver(frontLeft, frontRight, backLeft, backRight, imu, telemetry);
 
@@ -63,21 +64,37 @@ public class TestAuto extends OpMode {
     public void loop() {
         switch(state) {
             case INIT:
+                intake.setVelocity(INTAKE_SPEED);
                 driver.doCommand(new DriveCommand(
-                        new Pose(1, 1, 0), SPEED,
-                        AngleUnit.RADIANS, DistanceUnit.METER,
-                        driver
-                        ));
-                driver.doCommand(new WaitCommand(1.0));
-                driver.doCommand(new DriveCommand(
-                        new Pose(0, 0, 0.5 * 2 * Math.PI), SPEED,
-                        AngleUnit.RADIANS, DistanceUnit.METER,
+                        new Pose(18, 0, 0), SPEED,
+                        AngleUnit.RADIANS, DistanceUnit.INCH,
                         driver
                 ));
-                driver.doCommand(new WaitCommand(1.0));
+
+                // TODO: shoot x4
+                driver.doCommand(new WaitCommand(1));
+
                 driver.doCommand(new DriveCommand(
-                        new Pose(-1, -1, 0.5 * 2 * Math.PI), SPEED,
-                        AngleUnit.RADIANS, DistanceUnit.METER,
+                        new Pose(18, -36, -0.25 * 2 * Math.PI), SPEED,
+                        AngleUnit.RADIANS, DistanceUnit.INCH,
+                        driver
+                ));
+
+                // TODO: intake from flower
+                driver.doCommand(new WaitCommand(1));
+
+                driver.doCommand(new DriveCommand(
+                        new Pose(78, 36, -0.75 * 2 * Math.PI), SPEED,
+                        AngleUnit.RADIANS, DistanceUnit.INCH,
+                        driver
+                ));
+
+                // TODO: shoot x4
+                driver.doCommand(new WaitCommand(1));
+
+                driver.doCommand(new DriveCommand(
+                        new Pose(-12, -42, 0), SPEED,
+                        AngleUnit.RADIANS, DistanceUnit.INCH,
                         driver
                 ));
                 state = AutoState.WAIT;
@@ -87,6 +104,8 @@ public class TestAuto extends OpMode {
                 if(driver.isCommandsEmpty())
                     state = AutoState.COMPLETE;
                 break;
+
+
 
             case COMPLETE:
                 telemetry.addLine("Done");

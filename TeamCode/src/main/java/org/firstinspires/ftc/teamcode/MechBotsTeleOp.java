@@ -1,0 +1,140 @@
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.IMU;
+
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+
+/*
+ * The FTC controller has two types of operation
+ * that we need to implement, TeleOp and Autonomous
+ * TeleOp is how the drive team operates the robot
+ * and is usually pretty simple
+ */
+@TeleOp(name="MechBotsTeleOp")
+public class MechBotsTeleOp extends LinearOpMode {
+
+    /*
+     * Speed is in degrees per second, so we
+     * use the wheel radius to calculate speed
+     * from mm/s
+     */
+    private static final double SPEED = (750) / 52.0;
+    private static final double INTAKE_SPEED = 120;
+
+    private DcMotorEx frontLeft;
+    private DcMotorEx frontRight;
+    private DcMotorEx backLeft;
+    private DcMotorEx backRight;
+    private DcMotorEx intake;
+    private IMU imu;
+
+    private void drive() {
+        double x = SPEED * -gamepad1.left_stick_y;
+        double y = SPEED * gamepad1.left_stick_x;
+        double rx = SPEED * gamepad1.right_stick_x;
+
+        /* Mecanum drive equations */
+        frontLeft.setVelocity(x + y + rx, AngleUnit.RADIANS);
+        frontRight.setVelocity(x - y - rx, AngleUnit.RADIANS);
+        backLeft.setVelocity(x - y + rx, AngleUnit.RADIANS);
+        backRight.setVelocity(x + y - rx, AngleUnit.RADIANS);
+    }
+
+    double normalize(double angle) {
+        while (angle > Math.PI) angle -= 2 * Math.PI;
+        while (angle <= -Math.PI) angle += 2 * Math.PI;
+        return angle;
+    }
+    private double heading;
+    private void runImu() {
+        heading = normalize(imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS));
+        telemetry.addData("Heading", heading);
+    }
+    private double intakeDirection = 0;
+
+    private void runIntake() {
+        if(gamepad1.a)
+            if(intakeDirection < 0)
+                intakeDirection = 0;
+            else
+                intakeDirection = 1;
+        else if(gamepad1.b)
+            if(intakeDirection > 0)
+                intakeDirection = 0;
+            else
+                intakeDirection = -1;
+
+        intake.setVelocity(intakeDirection * INTAKE_SPEED, AngleUnit.RADIANS);
+    }
+    private void driveGlobal() {
+        double x = -gamepad1.left_stick_y;
+        double y = gamepad1.left_stick_x;
+        double rx = SPEED * gamepad1.right_stick_x;
+
+        double gx = SPEED * (Math.cos(heading) * x - Math.sin(heading) * y);
+        double gy = SPEED * (Math.sin(heading) * x + Math.cos(heading) * y);
+
+        frontLeft.setVelocity(gx + gy + rx, AngleUnit.RADIANS);
+        frontRight.setVelocity(gx - gy - rx, AngleUnit.RADIANS);
+        backLeft.setVelocity(gx - gy + rx, AngleUnit.RADIANS);
+        backRight.setVelocity(gx + gy - rx, AngleUnit.RADIANS);
+    }
+
+    @Override
+    public void runOpMode() {
+        /*
+         * Get pointers to the motors in the robot
+         * The deviceName string is the name we
+         * enter in the controller
+         */
+        frontLeft = hardwareMap.get(DcMotorEx.class, "frontLeft");
+        frontRight = hardwareMap.get(DcMotorEx.class, "frontRight");
+        backLeft = hardwareMap.get(DcMotorEx.class, "backLeft");
+        backRight = hardwareMap.get(DcMotorEx.class, "backRight");
+        intake = hardwareMap.get(DcMotorEx.class, "intake");
+        imu = hardwareMap.get(IMU.class, "imu");
+        RevHubOrientationOnRobot orientationOnRobot = new RevHubOrientationOnRobot(
+                RevHubOrientationOnRobot.LogoFacingDirection.DOWN,
+                RevHubOrientationOnRobot.UsbFacingDirection.LEFT
+        );
+        imu.initialize(new IMU.Parameters(orientationOnRobot));
+
+        frontLeft.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+        frontRight.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+        backLeft.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+        backRight.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+
+        frontLeft.setDirection(DcMotorEx.Direction.REVERSE);
+        backLeft.setDirection(DcMotorEx.Direction.REVERSE);
+
+        frontLeft.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+        frontRight.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+        backLeft.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+        backRight.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+
+        frontLeft.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+        frontRight.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+        backLeft.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+        backRight.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+
+        waitForStart();
+
+        while(opModeIsActive()) {
+            runImu();
+            runIntake();
+            if(gamepad1.right_bumper) {
+                imu.resetYaw();
+            }
+            if(gamepad1.right_trigger > 0.2) {
+                driveGlobal();
+            } else {
+                drive();
+            }
+            telemetry.update();
+        }
+    }
+}

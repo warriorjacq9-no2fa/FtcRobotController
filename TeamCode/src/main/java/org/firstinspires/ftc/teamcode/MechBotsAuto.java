@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -10,8 +11,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.commands.DriveCommand;
 import org.firstinspires.ftc.teamcode.commands.WaitCommand;
 
-@Autonomous(name="MainAuto")
-public class MainAuto extends OpMode {
+@Autonomous(name="MechBotsAuto")
+public class MechBotsAuto extends OpMode {
 
     private static final double SPEED = (500) / 52.0;
     private static final double INTAKE_SPEED = 120;
@@ -42,6 +43,16 @@ public class MainAuto extends OpMode {
         backRight = hardwareMap.get(DcMotorEx.class, "backRight");
         intake = hardwareMap.get(DcMotorEx.class, "intake");
         imu = hardwareMap.get(IMU.class, "imu");
+
+        RevHubOrientationOnRobot orientationOnRobot = new RevHubOrientationOnRobot(
+                RevHubOrientationOnRobot.LogoFacingDirection.DOWN,
+                RevHubOrientationOnRobot.UsbFacingDirection.LEFT
+        );
+        imu.initialize(new IMU.Parameters(orientationOnRobot));
+        imu.resetYaw();
+
+        frontLeft.setDirection(DcMotorEx.Direction.REVERSE);
+        backLeft.setDirection(DcMotorEx.Direction.REVERSE);
 
         driver = new Driver(frontLeft, frontRight, backLeft, backRight, imu, telemetry);
 

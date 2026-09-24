@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -23,8 +22,6 @@ public class Driver {
     /* Counts per revolution, found on the product page for the motor */
     private static final double ENCODER_CPR = 384.5;
     private static final double WHEEL_RADIUS_M = 0.052;
-    private static final double ROBOT_LENGTH_M = 0.285; /* Front-back from wheel centers */
-    private static final double ROBOT_WIDTH_M = 0.415; /* left-right from wheel centers */
 
     /* PID constants */
     private static final double Kp = 10;
@@ -67,13 +64,6 @@ public class Driver {
         this.imu = imu;
         this.telemetry = telemetry;
 
-        RevHubOrientationOnRobot orientationOnRobot = new RevHubOrientationOnRobot(
-                RevHubOrientationOnRobot.LogoFacingDirection.DOWN,
-                RevHubOrientationOnRobot.UsbFacingDirection.RIGHT
-        );
-        imu.initialize(new IMU.Parameters(orientationOnRobot));
-        imu.resetYaw();
-
         heading = 0;
         oldHeading = 0;
 
@@ -81,9 +71,6 @@ public class Driver {
         frontRight.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
         backLeft.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
         backRight.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
-
-        frontRight.setDirection(DcMotorEx.Direction.REVERSE);
-        backRight.setDirection(DcMotorEx.Direction.REVERSE);
 
         frontLeft.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
         frontRight.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
@@ -133,7 +120,6 @@ public class Driver {
             Pose dPose, double speed,
             AngleUnit angleUnits, DistanceUnit distanceUnits
     ) {
-        heading = normalize(-imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS));
         if(dPose == null) {
             frontLeft.setPower(0);
             frontRight.setPower(0);
