@@ -18,6 +18,7 @@ public class LimelightTest extends OpMode {
     private final double Kp = 0.025;
     private final double Ki = 0;
     private final double Kd = 0.0001;
+    private final double SEARCH_SPEED = 0.5 * 2 * Math.PI; // Search speed in rad/s
     private Limelight3A ll;
     private Servo servo;
     // 0-centered, radians
@@ -25,6 +26,13 @@ public class LimelightTest extends OpMode {
     private ElapsedTime loopTimer = new ElapsedTime();
     private double lastTime;
     private double xIntegral, xDerivative, oldXError;
+
+    private enum LimelightState {
+        LL_SEARCH,
+        LL_TRACK
+    }
+
+    private LimelightState state;
 
     @Override
     public void init() {
@@ -41,46 +49,69 @@ public class LimelightTest extends OpMode {
         xIntegral = 0;
         xDerivative = 0;
         oldXError = 0;
+
+        state = LimelightState.LL_SEARCH;
     }
     double filter(double a, double b) {
         return 0.2 * a + (1 - 0.2) * b;
     }
 
+    double searchDirection = 1;
     @Override
     public void loop() {
         LLResult res = ll.getLatestResult();
-        double xError = oldXError;
-        if(res != null && res.isValid()) {
-            xError = AngleUnit.DEGREES.toRadians(res.getTx());
-        }
-
         double currentTime = loopTimer.seconds();
         double loopTime = currentTime - lastTime;
         lastTime = currentTime;
+        switch(state) {
+            case LL_SEARCH:
+                if(res != null && res.isValid()) {
+                    state = LimelightState.LL_TRACK; // We got a lock, start tracking
+                    break;
+                }
 
-        xIntegral += xError * loopTime;
+                position += SEARCH_SPEED * loopTime * searchDirection;
+                if(position > MAX_POSITION) {
+                    position = MAX_POSITION;
+                    searchDirection = -1;
+                } else if(position < MIN_POSITION) {
+                    position = MIN_POSITION;
+                    searchDirection = 1;
+                }
+                servo.setPosition((position - MIN_POSITION) / (MAX_POSITION - MIN_POSITION));
+                telemetry.addLine("Searching");
+                break;
 
-        xDerivative = filter((xError - oldXError) / loopTime, xDerivative);
+            case LL_TRACK:
+                double xError = oldXError;
+                if(res != null && res.isValid()) {
+                    xError = AngleUnit.DEGREES.toRadians(res.getTx());
+                } else {
+                    state = LimelightState.LL_SEARCH; // We lost lock, start searching
+                }
 
-        double xUt = Kp * xError + Ki * xIntegral + Kd * xDerivative;
+                xIntegral += xError * loopTime;
 
-        oldXError = xError;
+                xDerivative = filter((xError - oldXError) / loopTime, xDerivative);
 
-        position += xUt;
+                double xUt = Kp * xError + Ki * xIntegral + Kd * xDerivative;
 
-        if(position > MAX_POSITION)
-            position = MAX_POSITION;
-        else if(position < MIN_POSITION)
-            position = MIN_POSITION;
+                oldXError = xError;
 
-        double servoPosition =
-                (position - MIN_POSITION) / (MAX_POSITION - MIN_POSITION);
+                position += xUt;
 
-        servo.setPosition(servoPosition);
-        telemetry.addData("X error", xError);
-        telemetry.addData("PID out", xUt);
-        telemetry.addData("PID integral", xIntegral);
-        telemetry.addData("PID derivative", xDerivative);
+                if(position > MAX_POSITION)
+                    position = MAX_POSITION;
+                else if(position < MIN_POSITION)
+                    position = MIN_POSITION;
+
+                servo.setPosition((position - MIN_POSITION) / (MAX_POSITION - MIN_POSITION));
+                telemetry.addLine("Tracking");
+                telemetry.addData("X error", xError);
+                telemetry.addData("PID out", xUt);
+                telemetry.addData("PID integral", xIntegral);
+                telemetry.addData("PID derivative", xDerivative);
+        }
         telemetry.addData("Loop time", loopTime);
         telemetry.update();
     }
