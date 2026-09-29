@@ -24,8 +24,9 @@ public class LimelightTest extends OpMode {
     // 0-centered, radians
     private double position;
     private ElapsedTime loopTimer = new ElapsedTime();
+    private ElapsedTime memTrackTimer = new ElapsedTime();
     private double lastTime;
-    private double xIntegral, xDerivative, oldXError;
+    private double xIntegral, xDerivative, oldXError, oldXUt;
 
     private enum LimelightState {
         LL_SEARCH,
@@ -49,6 +50,7 @@ public class LimelightTest extends OpMode {
         xIntegral = 0;
         xDerivative = 0;
         oldXError = 0;
+        oldXUt = 0;
 
         state = LimelightState.LL_SEARCH;
     }
@@ -83,11 +85,19 @@ public class LimelightTest extends OpMode {
                 break;
 
             case LL_TRACK:
-                double xError = oldXError;
+                double xError = 0;
                 if(res != null && res.isValid()) {
                     xError = AngleUnit.DEGREES.toRadians(res.getTx());
+                    memTrackTimer.reset();
                 } else {
-                    state = LimelightState.LL_SEARCH; // We lost lock, start searching
+                    if(memTrackTimer.seconds() < 2) {
+                        // Lost lock, start memory track
+                        xError -= oldXUt;
+                    } else {
+                        // We lost lock and are out of memory track, start searching
+                        searchDirection = Math.signum(xError);
+                        state = LimelightState.LL_SEARCH;
+                    }
                 }
 
                 xIntegral += xError * loopTime;
@@ -99,6 +109,7 @@ public class LimelightTest extends OpMode {
                 oldXError = xError;
 
                 position += xUt;
+                oldXUt = xUt;
 
                 if(position > MAX_POSITION)
                     position = MAX_POSITION;
