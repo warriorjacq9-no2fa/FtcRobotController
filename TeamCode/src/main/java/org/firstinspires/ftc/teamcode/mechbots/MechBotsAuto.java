@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.mechbots;
 
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -8,6 +8,8 @@ import com.qualcomm.robotcore.hardware.IMU;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.teamcode.Driver;
+import org.firstinspires.ftc.teamcode.Pose;
 import org.firstinspires.ftc.teamcode.commands.DriveCommand;
 import org.firstinspires.ftc.teamcode.commands.WaitCommand;
 
@@ -66,8 +68,8 @@ public class MechBotsAuto extends OpMode {
             case INIT:
                 intake.setVelocity(INTAKE_SPEED);
                 driver.doCommand(new DriveCommand(
-                        new Pose(18, 0, 0), SPEED,
-                        AngleUnit.RADIANS, DistanceUnit.INCH,
+                        new Pose(580, 920, 45), SPEED,
+                        AngleUnit.DEGREES, DistanceUnit.MM,
                         driver
                 ));
 
@@ -75,8 +77,8 @@ public class MechBotsAuto extends OpMode {
                 driver.doCommand(new WaitCommand(1));
 
                 driver.doCommand(new DriveCommand(
-                        new Pose(18, -36, -0.25 * 2 * Math.PI), SPEED,
-                        AngleUnit.RADIANS, DistanceUnit.INCH,
+                        new Pose(1350, -900, -90), SPEED,
+                        AngleUnit.DEGREES, DistanceUnit.MM,
                         driver
                 ));
 
@@ -84,8 +86,8 @@ public class MechBotsAuto extends OpMode {
                 driver.doCommand(new WaitCommand(1));
 
                 driver.doCommand(new DriveCommand(
-                        new Pose(78, 36, -0.75 * 2 * Math.PI), SPEED,
-                        AngleUnit.RADIANS, DistanceUnit.INCH,
+                        new Pose(1350, 900, 225), SPEED,
+                        AngleUnit.DEGREES, DistanceUnit.MM,
                         driver
                 ));
 
@@ -93,7 +95,7 @@ public class MechBotsAuto extends OpMode {
                 driver.doCommand(new WaitCommand(1));
 
                 driver.doCommand(new DriveCommand(
-                        new Pose(-12, -42, 0), SPEED,
+                        new Pose(-900, -200, 0), SPEED,
                         AngleUnit.RADIANS, DistanceUnit.INCH,
                         driver
                 ));
