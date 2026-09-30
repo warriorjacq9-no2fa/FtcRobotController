@@ -87,6 +87,11 @@ public class LimelightTest extends OpMode {
                 break;
 
             case LL_MEM:
+                if(res != null && res.isValid()) {
+                    state = LimelightState.LL_TRACK; // We got a lock, start tracking
+                    break;
+                }
+                
                 position += memVel;
 
                 if(position > MAX_POSITION)
@@ -108,15 +113,18 @@ public class LimelightTest extends OpMode {
                 break;
 
             case LL_TRACK:
-                double xError = 0;
+                double xError;
                 if(res != null && res.isValid()) {
                     xError = AngleUnit.DEGREES.toRadians(res.getTx());
                     memTrackTimer.reset();
                     telemetry.addLine("Tracking");
                 } else {
-                    // Lost lock, start memory track
-                    memVel = oldXUt; // Raw servo velocity
-                    state = LimelightState.LL_MEM;
+                    if(memTrackTimer.seconds() > 0.1) {
+                        memTrackTimer.reset();
+                        // Lost lock, start memory track
+                        memVel = oldXUt; // Raw servo velocity
+                        state = LimelightState.LL_MEM;
+                    }
                     break;
                 }
 
