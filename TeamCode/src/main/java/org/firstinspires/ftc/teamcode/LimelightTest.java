@@ -30,7 +30,8 @@ public class LimelightTest extends OpMode {
 
     private enum LimelightState {
         LL_SEARCH,
-        LL_TRACK
+        LL_TRACK,
+        LL_MEM
     }
 
     private LimelightState state;
@@ -59,6 +60,7 @@ public class LimelightTest extends OpMode {
     }
 
     double searchDirection = 1;
+    double memVel = 0;
     @Override
     public void loop() {
         LLResult res = ll.getLatestResult();
@@ -81,7 +83,28 @@ public class LimelightTest extends OpMode {
                     searchDirection = 1;
                 }
                 servo.setPosition((position - MIN_POSITION) / (MAX_POSITION - MIN_POSITION));
-                telemetry.addLine("Searching");
+                telemetry.addData("Searching", "%s", searchDirection == -1 ? "CW" : "CCW");
+                break;
+
+            case LL_MEM:
+                position += memVel;
+
+                if(position > MAX_POSITION)
+                    position = MAX_POSITION;
+                else if(position < MIN_POSITION)
+                    position = MIN_POSITION;
+
+                servo.setPosition((position - MIN_POSITION) / (MAX_POSITION - MIN_POSITION));
+                telemetry.addData("Memory track", "%f rad/s, %f left",
+                        memVel, 2 - memTrackTimer.seconds()
+                );
+
+                if(memTrackTimer.seconds() >= 2) {
+                    // We lost lock and are out of memory track, start searching
+                    searchDirection = Math.signum(memVel);
+                    if(searchDirection == 0) searchDirection = 1;
+                    state = LimelightState.LL_SEARCH;
+                }
                 break;
 
             case LL_TRACK:
@@ -89,15 +112,12 @@ public class LimelightTest extends OpMode {
                 if(res != null && res.isValid()) {
                     xError = AngleUnit.DEGREES.toRadians(res.getTx());
                     memTrackTimer.reset();
+                    telemetry.addLine("Tracking");
                 } else {
-                    if(memTrackTimer.seconds() < 2) {
-                        // Lost lock, start memory track
-                        xError -= oldXUt;
-                    } else {
-                        // We lost lock and are out of memory track, start searching
-                        searchDirection = Math.signum(xError);
-                        state = LimelightState.LL_SEARCH;
-                    }
+                    // Lost lock, start memory track
+                    memVel = oldXUt; // Raw servo velocity
+                    state = LimelightState.LL_MEM;
+                    break;
                 }
 
                 xIntegral += xError * loopTime;
@@ -117,12 +137,12 @@ public class LimelightTest extends OpMode {
                     position = MIN_POSITION;
 
                 servo.setPosition((position - MIN_POSITION) / (MAX_POSITION - MIN_POSITION));
-                telemetry.addLine("Tracking");
                 telemetry.addData("X error", xError);
                 telemetry.addData("PID out", xUt);
                 telemetry.addData("PID integral", xIntegral);
                 telemetry.addData("PID derivative", xDerivative);
         }
+        telemetry.addData("Position", position);
         telemetry.addData("Loop time", loopTime);
         telemetry.update();
     }
