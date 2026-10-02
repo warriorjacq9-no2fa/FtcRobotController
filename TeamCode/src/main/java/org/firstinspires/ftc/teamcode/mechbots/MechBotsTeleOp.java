@@ -57,16 +57,17 @@ public class MechBotsTeleOp extends LinearOpMode {
     private double intakeDirection = 0;
 
     private void runIntake() {
-        if(gamepad1.a)
+        if(gamepad1.aWasPressed()) {
             if(intakeDirection < 0)
                 intakeDirection = 0;
             else
                 intakeDirection = 1;
-        else if(gamepad1.b)
+        } else if(gamepad1.xWasPressed()) {
             if(intakeDirection > 0)
                 intakeDirection = 0;
             else
                 intakeDirection = -1;
+        }
 
         intake.setVelocity(intakeDirection * INTAKE_SPEED, AngleUnit.RADIANS);
     }
