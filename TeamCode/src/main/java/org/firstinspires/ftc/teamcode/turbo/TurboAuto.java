@@ -1,5 +1,8 @@
 package org.firstinspires.ftc.teamcode.turbo;
 
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
+
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -37,6 +40,7 @@ public class TurboAuto extends OpMode {
 
     @Override
     public void init() {
+        telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
         state = AutoState.INIT;
 
         frontLeft = hardwareMap.get(DcMotorEx.class, "frontLeft");
