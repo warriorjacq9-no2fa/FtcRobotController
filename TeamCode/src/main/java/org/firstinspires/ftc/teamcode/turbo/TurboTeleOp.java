@@ -33,9 +33,10 @@ public class TurboTeleOp extends LinearOpMode {
     private IMU imu;
 
     private void drive() {
-        double x = SPEED * -gamepad1.left_stick_y;
-        double y = SPEED * gamepad1.left_stick_x;
-        double rx = SPEED * gamepad1.right_stick_x;
+        /* Use x^3 for better sensitivity in the middle range of the joystick */
+        double x = SPEED * -Math.pow(gamepad1.left_stick_y, 3);
+        double y = SPEED * Math.pow(gamepad1.left_stick_x, 3);
+        double rx = SPEED * Math.pow(gamepad1.right_stick_x, 3);
 
         /* Mecanum drive equations */
         frontLeft.setVelocity(x + y + rx, AngleUnit.RADIANS);
@@ -72,9 +73,10 @@ public class TurboTeleOp extends LinearOpMode {
         intake.setVelocity(intakeDirection * INTAKE_SPEED, AngleUnit.RADIANS);
     }
     private void driveGlobal() {
-        double x = -gamepad1.left_stick_y;
-        double y = gamepad1.left_stick_x;
-        double rx = SPEED * gamepad1.right_stick_x;
+        /* Use x^3 for better sensitivity in the middle range of the joystick */
+        double x = -Math.pow(gamepad1.left_stick_y, 3);
+        double y = Math.pow(gamepad1.left_stick_x, 3);
+        double rx = SPEED * Math.pow(gamepad1.right_stick_x, 3);
 
         double gx = SPEED * (Math.cos(heading) * x - Math.sin(heading) * y);
         double gy = SPEED * (Math.sin(heading) * x + Math.cos(heading) * y);
