@@ -4,8 +4,10 @@ import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.IMU;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
@@ -26,11 +28,8 @@ public class MechBotsTeleOp extends LinearOpMode {
     private static final double SPEED = (750) / 52.0;
     private static final double INTAKE_SPEED = 120;
 
-    private DcMotorEx frontLeft;
-    private DcMotorEx frontRight;
-    private DcMotorEx backLeft;
-    private DcMotorEx backRight;
-    private DcMotorEx intake;
+    private DcMotorEx frontLeft, frontRight, backLeft, backRight;
+    private DcMotorEx intake, sGate, shooter;
     private IMU imu;
 
     private void drive() {
@@ -73,6 +72,17 @@ public class MechBotsTeleOp extends LinearOpMode {
 
         intake.setVelocity(intakeDirection * INTAKE_SPEED, AngleUnit.RADIANS);
     }
+
+    private void runShooter() {
+        if(gamepad2.a) {
+            sGate.setPower(1);
+            if(gamepad2.right_trigger_pressed)
+                shooter.setPower(1);
+        } else {
+            sGate.setPower(0);
+            shooter.setPower(0);
+        }
+    }
     private void driveGlobal() {
         /* Use x^3 for better sensitivity in the middle range of the joystick */
         double x = -Math.pow(gamepad1.left_stick_y, 3);
@@ -100,6 +110,8 @@ public class MechBotsTeleOp extends LinearOpMode {
         backLeft = hardwareMap.get(DcMotorEx.class, "backLeft");
         backRight = hardwareMap.get(DcMotorEx.class, "backRight");
         intake = hardwareMap.get(DcMotorEx.class, "intake");
+        sGate = hardwareMap.get(DcMotorEx.class, "sGate");
+        shooter = hardwareMap.get(DcMotorEx.class, "shooter");
         imu = hardwareMap.get(IMU.class, "imu");
         RevHubOrientationOnRobot orientationOnRobot = new RevHubOrientationOnRobot(
                 RevHubOrientationOnRobot.LogoFacingDirection.DOWN,
@@ -130,6 +142,7 @@ public class MechBotsTeleOp extends LinearOpMode {
         while(opModeIsActive()) {
             runImu();
             runIntake();
+            runShooter();
             if(gamepad1.right_bumper) {
                 imu.resetYaw();
             }

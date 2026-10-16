@@ -3,8 +3,10 @@ package org.firstinspires.ftc.teamcode.turbo;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.IMU;
+import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
@@ -25,11 +27,9 @@ public class TurboTeleOp extends LinearOpMode {
     private static final double SPEED = (750) / 52.0;
     private static final double INTAKE_SPEED = 120;
 
-    private DcMotorEx frontLeft;
-    private DcMotorEx frontRight;
-    private DcMotorEx backLeft;
-    private DcMotorEx backRight;
-    private DcMotorEx intake;
+    private DcMotorEx frontLeft, frontRight, backLeft, backRight;
+    private DcMotorEx intake, shooter;
+    private CRServo sweep;
     private IMU imu;
 
     private void drive() {
@@ -57,6 +57,13 @@ public class TurboTeleOp extends LinearOpMode {
     }
     private double intakeDirection = 0;
 
+    private void runShooter() {
+        if(gamepad2.a)
+            shooter.setPower(1);
+        else
+            shooter.setPower(0);
+    }
+
     private void runIntake() {
         if(gamepad1.aWasPressed()) {
             if(intakeDirection < 0)
@@ -71,6 +78,7 @@ public class TurboTeleOp extends LinearOpMode {
         }
 
         intake.setVelocity(intakeDirection * INTAKE_SPEED, AngleUnit.RADIANS);
+        sweep.setPower(intakeDirection);
     }
     private void driveGlobal() {
         /* Use x^3 for better sensitivity in the middle range of the joystick */
@@ -99,6 +107,8 @@ public class TurboTeleOp extends LinearOpMode {
         backLeft = hardwareMap.get(DcMotorEx.class, "backLeft");
         backRight = hardwareMap.get(DcMotorEx.class, "backRight");
         intake = hardwareMap.get(DcMotorEx.class, "intake");
+        shooter = hardwareMap.get(DcMotorEx.class, "shooter");
+        sweep = hardwareMap.get(CRServo.class, "sweep");
         imu = hardwareMap.get(IMU.class, "imu");
         RevHubOrientationOnRobot orientationOnRobot = new RevHubOrientationOnRobot(
                 RevHubOrientationOnRobot.LogoFacingDirection.DOWN,
@@ -129,6 +139,7 @@ public class TurboTeleOp extends LinearOpMode {
         while(opModeIsActive()) {
             runImu();
             runIntake();
+            runShooter();
             if(gamepad1.right_bumper) {
                 imu.resetYaw();
             }
