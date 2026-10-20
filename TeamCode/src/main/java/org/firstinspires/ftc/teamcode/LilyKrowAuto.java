@@ -1,14 +1,23 @@
 package org.firstinspires.ftc.teamcode;
 
 
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.IMU;
+
+import org.firstinspires.ftc.teamcode.commands.WaitCommand;
+
+/*We don't really know what we're doing, but we're trying*/
 
 @Autonomous(name="Lily/KrowAuto")
 public class LilyKrowAuto extends OpMode {
 
+    private IMU imu;    private Driver driver;
     private DcMotorEx frontRight = null;
     private DcMotorEx frontLeft = null;
     private DcMotorEx backRight = null;
@@ -25,12 +34,23 @@ public class LilyKrowAuto extends OpMode {
 
     public void init() {
 
+        telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
         state = AutoState.INIT;
 
         frontRight = hardwareMap.get(DcMotorEx.class, "frontRight");
         frontLeft = hardwareMap.get(DcMotorEx.class, "frontLeft");
         backRight = hardwareMap.get(DcMotorEx.class, "backRight");
         backLeft = hardwareMap.get(DcMotorEx.class, "backLeft");
+        imu = hardwareMap.get(IMU.class, "imu");
+
+        RevHubOrientationOnRobot orientationOnRobot = new RevHubOrientationOnRobot(
+                RevHubOrientationOnRobot.LogoFacingDirection.DOWN,
+                RevHubOrientationOnRobot.UsbFacingDirection.LEFT
+        );
+        imu.initialize(new IMU.Parameters(orientationOnRobot));
+        imu.resetYaw();
+
+
 
         frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
         backRight.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -41,8 +61,11 @@ public class LilyKrowAuto extends OpMode {
         frontLeft.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
         backRight.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
         backLeft.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
-    }
 
+        driver = new Driver(frontLeft, frontRight, backLeft, backRight, imu, telemetry);
+
+    }
+    //a is forward, b is strafe, c is turn
     public void drive(double a, double b, double c) {
         frontLeft.setPower(a + b + c);
         frontRight.setPower(a + b - c);
@@ -54,14 +77,45 @@ public class LilyKrowAuto extends OpMode {
         switch (state) {
             case INIT:
                 drive(0.0, 0.0, 0.0);
+                telemetry.addLine("INIT STATE");
+                telemetry.update();
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+                state = AutoState.DRIVE;
                 break;
+
             case DRIVE:
                 drive(0.2, 0.0, 0.0);
+                telemetry.addLine("DRIVE STATE");
+                telemetry.update();
+                try {
+                    Thread.sleep(3000);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+                state = AutoState.TURN;
                 break;
+
             case TURN:
                 drive(0.0, 0.0, 0.2);
+                telemetry.addLine("TURN STATE");
+                telemetry.update();
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+                state = AutoState.COMPLETE;
                 break;
+
+
             case COMPLETE:
+                drive(0.0, 0.0, 0.0);
+                telemetry.addLine("COMPLETE STATE");
+                telemetry.update();
                 break;
         }
     }
