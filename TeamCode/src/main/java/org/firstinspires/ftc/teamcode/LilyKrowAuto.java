@@ -41,16 +41,6 @@ public class LilyKrowAuto extends OpMode {
         frontLeft = hardwareMap.get(DcMotorEx.class, "frontLeft");
         backRight = hardwareMap.get(DcMotorEx.class, "backRight");
         backLeft = hardwareMap.get(DcMotorEx.class, "backLeft");
-        imu = hardwareMap.get(IMU.class, "imu");
-
-        RevHubOrientationOnRobot orientationOnRobot = new RevHubOrientationOnRobot(
-                RevHubOrientationOnRobot.LogoFacingDirection.DOWN,
-                RevHubOrientationOnRobot.UsbFacingDirection.LEFT
-        );
-        imu.initialize(new IMU.Parameters(orientationOnRobot));
-        imu.resetYaw();
-
-
 
         frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
         backRight.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -62,15 +52,13 @@ public class LilyKrowAuto extends OpMode {
         backRight.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
         backLeft.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
 
-        driver = new Driver(frontLeft, frontRight, backLeft, backRight, imu, telemetry);
-
     }
     //a is forward, b is strafe, c is turn
     public void drive(double a, double b, double c) {
-        frontLeft.setPower(a + b + c);
-        frontRight.setPower(a + b - c);
-        backLeft.setPower(a - b + c);
-        backRight.setPower(a - b - c);
+        frontLeft.setPower(a+b+c);
+        frontRight.setPower(a+b-c);
+        backLeft.setPower(a-b+c);
+        backRight.setPower(a-b-c);
     }
 
     public void loop() {
