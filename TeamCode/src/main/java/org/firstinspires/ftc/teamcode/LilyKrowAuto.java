@@ -3,21 +3,16 @@ package org.firstinspires.ftc.teamcode;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
-import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.IMU;
-
-import org.firstinspires.ftc.teamcode.commands.WaitCommand;
 
 /*We don't really know what we're doing, but we're trying*/
 
 @Autonomous(name="Lily/KrowAuto")
 public class LilyKrowAuto extends OpMode {
 
-    private IMU imu;    private Driver driver;
     private DcMotorEx frontRight = null;
     private DcMotorEx frontLeft = null;
     private DcMotorEx backRight = null;
