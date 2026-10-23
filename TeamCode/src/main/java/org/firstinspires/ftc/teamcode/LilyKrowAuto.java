@@ -7,16 +7,18 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 /*We don't really know what we're doing, but we're trying*/
 
-@Autonomous(name="Lily/KrowAuto")
+@Autonomous(name="LilyKrowAuto")
 public class LilyKrowAuto extends OpMode {
 
     private DcMotorEx frontRight = null;
     private DcMotorEx frontLeft = null;
     private DcMotorEx backRight = null;
     private DcMotorEx backLeft = null;
+    private final ElapsedTime timer = new ElapsedTime();
 
     private enum AutoState {
         INIT,
@@ -59,41 +61,40 @@ public class LilyKrowAuto extends OpMode {
     public void loop() {
         switch (state) {
             case INIT:
-                drive(0.0, 0.0, 0.0);
-                telemetry.addLine("INIT STATE");
-                telemetry.update();
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
+                if (timer.seconds() < 1) {
+                    drive(0.0, 0.0, 0.0);
+                    telemetry.addLine("INIT STATE");
+                    telemetry.update();
                 }
-                state = AutoState.DRIVE;
+                else {
+                    state = AutoState.DRIVE;
+                    timer.reset();
+                }
                 break;
 
             case DRIVE:
-                drive(0.2, 0.0, 0.0);
-                telemetry.addLine("DRIVE STATE");
-                telemetry.update();
-                try {
-                    Thread.sleep(3000);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
+                if (timer.seconds() < 3) {
+                    drive(0.2, 0.0, 0.0);
+                    telemetry.addLine("DRIVE STATE");
+                    telemetry.update();
                 }
-                state = AutoState.TURN;
+                else {
+                    state = AutoState.TURN;
+                    timer.reset();
+                }
                 break;
 
             case TURN:
-                drive(0.0, 0.0, 0.2);
-                telemetry.addLine("TURN STATE");
-                telemetry.update();
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
+                if (timer.seconds() < 1) {
+                    drive(0.0, 0.0, 0.2);
+                    telemetry.addLine("TURN STATE");
+                    telemetry.update();
                 }
-                state = AutoState.COMPLETE;
+                else {
+                    state = AutoState.COMPLETE;
+                    timer.reset();
+                }
                 break;
-
 
             case COMPLETE:
                 drive(0.0, 0.0, 0.0);
