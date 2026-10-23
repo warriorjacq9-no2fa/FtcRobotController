@@ -99,9 +99,6 @@ public class TurboAuto extends OpMode {
                 driver.doCommand(new WaitCommand(1));
 
                 driver.doCommand(new DriveCommand(
-                        new Pose(-12, -42, 0), SPEED,
-                        AngleUnit.RADIANS, DistanceUnit.INCH,
-                        driver
                 ));
                 state = AutoState.WAIT;
                 break;
@@ -121,3 +118,4 @@ public class TurboAuto extends OpMode {
         telemetry.update();
     }
 }
+
