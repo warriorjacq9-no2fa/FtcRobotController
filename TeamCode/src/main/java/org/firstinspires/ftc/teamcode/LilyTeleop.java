@@ -23,10 +23,12 @@ public class LilyTeleop extends OpMode {
         backRight = hardwareMap.get(DcMotorEx.class, "backRight");
         backLeft = hardwareMap.get(DcMotorEx.class, "backLeft");
 
+        /*Rights are reversed, and Backs are reversed, (such that backRight is double-negatived and thus is forward)
+        Lily and Krow are unsure why this was necessary, but it's what makes everything behave predictably.*/
         frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
-        backRight.setDirection(DcMotorSimple.Direction.REVERSE);
+        backRight.setDirection(DcMotorSimple.Direction.FORWARD);
         frontLeft.setDirection(DcMotorSimple.Direction.FORWARD);
-        backLeft.setDirection(DcMotorSimple.Direction.FORWARD);
+        backLeft.setDirection(DcMotorSimple.Direction.REVERSE);
 
         frontRight.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
         frontLeft.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
@@ -40,9 +42,9 @@ public class LilyTeleop extends OpMode {
         double turn = gamepad1.right_stick_x;
 
         frontLeft.setPower(forward+strafe+turn);
-        frontRight.setPower(forward+strafe-turn);
+        frontRight.setPower(forward-strafe-turn);
         backLeft.setPower(forward-strafe+turn);
-        backRight.setPower(forward-strafe-turn);
+        backRight.setPower(forward+strafe-turn);
     }
 
     public void loop(){

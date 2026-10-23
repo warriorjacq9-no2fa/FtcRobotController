@@ -53,9 +53,9 @@ public class LilyKrowAuto extends OpMode {
     //a is forward, b is strafe, c is turn
     public void drive(double a, double b, double c) {
         frontLeft.setPower(a+b+c);
-        frontRight.setPower(a+b-c);
+        frontRight.setPower(a-b-c);
         backLeft.setPower(a-b+c);
-        backRight.setPower(a-b-c);
+        backRight.setPower(a+b-c);
     }
 
     public void loop() {
@@ -86,7 +86,7 @@ public class LilyKrowAuto extends OpMode {
 
             case TURN:
                 if (timer.seconds() < 1) {
-                    drive(0.0, 0.0, 0.2);
+                    drive(0.0, 0.2, 0.0);
                     telemetry.addLine("TURN STATE");
                     telemetry.update();
                 }
@@ -98,7 +98,7 @@ public class LilyKrowAuto extends OpMode {
 
             case COMPLETE:
                 drive(0.0, 0.0, 0.0);
-                telemetry.addLine("COMPLETE STATE");
+                telemetry.addLine("!!!!COMPLETE STATE");
                 telemetry.update();
                 break;
         }
