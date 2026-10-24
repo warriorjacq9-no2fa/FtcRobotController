@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 
@@ -25,11 +26,11 @@ public class TurboTeleOp extends LinearOpMode {
      * from mm/s
      */
     private static final double SPEED = (750) / 52.0;
-    private static final double INTAKE_SPEED = 120;
+    private static final double INTAKE_SPEED = 110;
 
     private DcMotorEx frontLeft, frontRight, backLeft, backRight;
     private DcMotorEx intake, shooter;
-    private CRServo sweep;
+    private Servo gate;
     private IMU imu;
 
     private void drive() {
@@ -55,30 +56,26 @@ public class TurboTeleOp extends LinearOpMode {
         heading = normalize(imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS));
         telemetry.addData("Heading", heading);
     }
-    private double intakeDirection = 0;
 
     private void runShooter() {
         if(gamepad2.a)
-            shooter.setPower(1);
+            gate.setPosition(0.5);
         else
+            gate.setPosition(0);
+
+        if(gamepad2.right_trigger_pressed) {
+            shooter.setPower(0.6);
+        } else {
             shooter.setPower(0);
+        }
     }
 
     private void runIntake() {
-        if(gamepad1.aWasPressed()) {
-            if(intakeDirection < 0)
-                intakeDirection = 0;
-            else
-                intakeDirection = 1;
-        } else if(gamepad1.bWasPressed()) {
-            if(intakeDirection > 0)
-                intakeDirection = 0;
-            else
-                intakeDirection = -1;
+        if(gamepad1.a) {
+            intake.setVelocity(0);
+        } else {
+            intake.setVelocity(-INTAKE_SPEED, AngleUnit.RADIANS);
         }
-
-        intake.setVelocity(intakeDirection * INTAKE_SPEED, AngleUnit.RADIANS);
-        sweep.setPower(intakeDirection);
     }
     private void driveGlobal() {
         /* Use x^3 for better sensitivity in the middle range of the joystick */
@@ -108,7 +105,7 @@ public class TurboTeleOp extends LinearOpMode {
         backRight = hardwareMap.get(DcMotorEx.class, "backRight");
         intake = hardwareMap.get(DcMotorEx.class, "intake");
         shooter = hardwareMap.get(DcMotorEx.class, "shooter");
-        sweep = hardwareMap.get(CRServo.class, "sweep");
+        gate = hardwareMap.get(Servo.class, "gate");
         imu = hardwareMap.get(IMU.class, "imu");
         RevHubOrientationOnRobot orientationOnRobot = new RevHubOrientationOnRobot(
                 RevHubOrientationOnRobot.LogoFacingDirection.DOWN,
@@ -143,7 +140,7 @@ public class TurboTeleOp extends LinearOpMode {
             if(gamepad1.right_bumper) {
                 imu.resetYaw();
             }
-            if(gamepad1.right_trigger > 0.2) {
+            if(gamepad1.right_trigger_pressed) {
                 driveGlobal();
             } else {
                 drive();
