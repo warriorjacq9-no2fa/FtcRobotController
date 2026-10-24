@@ -15,6 +15,7 @@ import org.firstinspires.ftc.teamcode.Driver;
 import org.firstinspires.ftc.teamcode.Pose;
 import org.firstinspires.ftc.teamcode.commands.DriveCommand;
 import org.firstinspires.ftc.teamcode.commands.WaitCommand;
+import org.firstinspires.ftc.teamcode.mechbots.commands.ShootCommand;
 
 @Autonomous(name="MechBotsAuto")
 public class MechBotsAuto extends OpMode {
@@ -28,6 +29,7 @@ public class MechBotsAuto extends OpMode {
     private DcMotorEx backLeft;
     private DcMotorEx backRight;
     private DcMotorEx intake;
+    private DcMotorEx shooter, sGate;
     private IMU imu;
 
     private enum AutoState {
@@ -48,6 +50,8 @@ public class MechBotsAuto extends OpMode {
         backLeft = hardwareMap.get(DcMotorEx.class, "backLeft");
         backRight = hardwareMap.get(DcMotorEx.class, "backRight");
         intake = hardwareMap.get(DcMotorEx.class, "intake");
+        shooter = hardwareMap.get(DcMotorEx.class, "shooter");
+        sGate = hardwareMap.get(DcMotorEx.class, "sGate");
         imu = hardwareMap.get(IMU.class, "imu");
 
         RevHubOrientationOnRobot orientationOnRobot = new RevHubOrientationOnRobot(
@@ -57,8 +61,10 @@ public class MechBotsAuto extends OpMode {
         imu.initialize(new IMU.Parameters(orientationOnRobot));
         imu.resetYaw();
 
-        frontLeft.setDirection(DcMotorEx.Direction.REVERSE);
-        backLeft.setDirection(DcMotorEx.Direction.REVERSE);
+        frontLeft.setDirection(DcMotorEx.Direction.FORWARD);
+        frontRight.setDirection(DcMotorEx.Direction.FORWARD);
+        backLeft.setDirection(DcMotorEx.Direction.FORWARD);
+        backRight.setDirection(DcMotorEx.Direction.REVERSE);
 
         driver = new Driver(frontLeft, frontRight, backLeft, backRight, imu, telemetry);
 
@@ -70,15 +76,21 @@ public class MechBotsAuto extends OpMode {
     public void loop() {
         switch(state) {
             case INIT:
-                intake.setVelocity(INTAKE_SPEED);
+                driver.doCommand(new DriveCommand(
+                        new Pose(50, 0, 0), SPEED,
+                        AngleUnit.DEGREES, DistanceUnit.MM,
+                        driver
+                ));
+                driver.doCommand(new WaitCommand(1));
+                /*intake.setVelocity(INTAKE_SPEED);
+
                 driver.doCommand(new DriveCommand(
                         new Pose(580, 920, 45), SPEED,
                         AngleUnit.DEGREES, DistanceUnit.MM,
                         driver
                 ));
 
-                // TODO: shoot x4
-                driver.doCommand(new WaitCommand(1));
+                driver.doCommand(new ShootCommand(shooter, sGate));
 
                 driver.doCommand(new DriveCommand(
                         new Pose(1350, -900, -90), SPEED,
@@ -95,14 +107,13 @@ public class MechBotsAuto extends OpMode {
                         driver
                 ));
 
-                // TODO: shoot x4
-                driver.doCommand(new WaitCommand(1));
+                driver.doCommand(new ShootCommand(shooter, sGate));
 
                 driver.doCommand(new DriveCommand(
                         new Pose(-900, -200, 0), SPEED,
                         AngleUnit.RADIANS, DistanceUnit.INCH,
                         driver
-                ));
+                ));*/
                 state = AutoState.WAIT;
                 break;
 
@@ -110,8 +121,6 @@ public class MechBotsAuto extends OpMode {
                 if(driver.isCommandsEmpty())
                     state = AutoState.COMPLETE;
                 break;
-
-
 
             case COMPLETE:
                 telemetry.addLine("Done");

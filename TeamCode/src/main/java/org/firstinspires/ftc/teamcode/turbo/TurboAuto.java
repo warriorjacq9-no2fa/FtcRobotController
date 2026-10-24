@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.IMU;
+import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
@@ -15,6 +16,7 @@ import org.firstinspires.ftc.teamcode.Driver;
 import org.firstinspires.ftc.teamcode.Pose;
 import org.firstinspires.ftc.teamcode.commands.DriveCommand;
 import org.firstinspires.ftc.teamcode.commands.WaitCommand;
+import org.firstinspires.ftc.teamcode.turbo.commands.ShootCommand;
 
 @Autonomous(name="TurboAuto")
 public class TurboAuto extends OpMode {
@@ -28,6 +30,8 @@ public class TurboAuto extends OpMode {
     private DcMotorEx backLeft;
     private DcMotorEx backRight;
     private DcMotorEx intake;
+    private DcMotorEx shooter;
+    private Servo gate;
     private IMU imu;
 
     private enum AutoState {
@@ -48,6 +52,8 @@ public class TurboAuto extends OpMode {
         backLeft = hardwareMap.get(DcMotorEx.class, "backLeft");
         backRight = hardwareMap.get(DcMotorEx.class, "backRight");
         intake = hardwareMap.get(DcMotorEx.class, "intake");
+        shooter = hardwareMap.get(DcMotorEx.class, "shooter");
+        gate = hardwareMap.get(Servo.class, "gate");
         imu = hardwareMap.get(IMU.class, "imu");
 
         RevHubOrientationOnRobot orientationOnRobot = new RevHubOrientationOnRobot(
@@ -57,7 +63,9 @@ public class TurboAuto extends OpMode {
         imu.initialize(new IMU.Parameters(orientationOnRobot));
         imu.resetYaw();
 
+        frontLeft.setDirection(DcMotorEx.Direction.FORWARD);
         frontRight.setDirection(DcMotorEx.Direction.REVERSE);
+        backLeft.setDirection(DcMotorEx.Direction.FORWARD);
         backRight.setDirection(DcMotorEx.Direction.REVERSE);
 
         driver = new Driver(frontLeft, frontRight, backLeft, backRight, imu, telemetry);
@@ -72,13 +80,18 @@ public class TurboAuto extends OpMode {
             case INIT:
                 intake.setVelocity(INTAKE_SPEED);
                 driver.doCommand(new DriveCommand(
+                        new Pose(50, 0, 0), SPEED,
+                        AngleUnit.DEGREES, DistanceUnit.MM,
+                        driver
+                ));
+                driver.doCommand(new WaitCommand(1));
+                /*driver.doCommand(new DriveCommand(
                         new Pose(18, 0, 0), SPEED,
                         AngleUnit.RADIANS, DistanceUnit.INCH,
                         driver
                 ));
 
-                // TODO: shoot x4
-                driver.doCommand(new WaitCommand(1));
+                driver.doCommand(new ShootCommand(shooter, gate));
 
                 driver.doCommand(new DriveCommand(
                         new Pose(18, -36, -0.25 * 2 * Math.PI), SPEED,
@@ -95,14 +108,13 @@ public class TurboAuto extends OpMode {
                         driver
                 ));
 
-                // TODO: shoot x4
-                driver.doCommand(new WaitCommand(1));
+                driver.doCommand(new ShootCommand(shooter, gate));
 
                 driver.doCommand(new DriveCommand(
                         new Pose(-12, -42, 0), SPEED,
                         AngleUnit.RADIANS, DistanceUnit.INCH,
                         driver
-                ));
+                ));*/
                 state = AutoState.WAIT;
                 break;
 

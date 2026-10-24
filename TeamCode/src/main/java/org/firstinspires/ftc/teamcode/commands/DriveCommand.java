@@ -12,7 +12,7 @@ import java.util.Locale;
 public class DriveCommand extends Command {
     private enum DriveState {
         DRIVING,
-        COMPLETE
+        DONE
     }
     private Pose pose;
     private final double speed;
@@ -42,12 +42,12 @@ public class DriveCommand extends Command {
                         angleUnits, distanceUnits
                 );
                 if(pose == null) {
-                    done = true;
-                    state = DriveState.COMPLETE;
+                    state = DriveState.DONE;
                 }
                 break;
 
-            case COMPLETE:
+            case DONE:
+                done = true;
                 break;
         }
     }
