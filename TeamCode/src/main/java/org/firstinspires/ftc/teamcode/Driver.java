@@ -108,7 +108,6 @@ public class Driver {
      * Drive to a given relative pose in the
      * global frame
      * @param dPose Relative target pose
-     * @param speed Speed, in distanceUnits/sec
      * @param angleUnits Angle units for pose
      * @param distanceUnits Distance units for
      *                      pose and speed
@@ -117,7 +116,7 @@ public class Driver {
      * Essentially dPose - poseMoved
      */
     public Pose drive(
-            Pose dPose, double speed,
+            Pose dPose,
             AngleUnit angleUnits, DistanceUnit distanceUnits
     ) {
         if(dPose == null) {

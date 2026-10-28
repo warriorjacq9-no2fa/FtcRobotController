@@ -64,19 +64,19 @@ public class TestAuto extends OpMode {
         switch(state) {
             case INIT:
                 driver.doCommand(new DriveCommand(
-                        new Pose(1, 1, 0), SPEED,
+                        new Pose(1, 1, 0),
                         AngleUnit.RADIANS, DistanceUnit.METER,
                         driver
                         ));
                 driver.doCommand(new WaitCommand(1.0));
                 driver.doCommand(new DriveCommand(
-                        new Pose(0, 0, 0.5 * 2 * Math.PI), SPEED,
+                        new Pose(0, 0, 0.5 * 2 * Math.PI),
                         AngleUnit.RADIANS, DistanceUnit.METER,
                         driver
                 ));
                 driver.doCommand(new WaitCommand(1.0));
                 driver.doCommand(new DriveCommand(
-                        new Pose(-1, -1, 0.5 * 2 * Math.PI), SPEED,
+                        new Pose(-1, -1, 0.5 * 2 * Math.PI),
                         AngleUnit.RADIANS, DistanceUnit.METER,
                         driver
                 ));

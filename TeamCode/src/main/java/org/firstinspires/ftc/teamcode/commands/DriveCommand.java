@@ -15,18 +15,16 @@ public class DriveCommand extends Command {
         DONE
     }
     private Pose pose;
-    private final double speed;
     private final AngleUnit angleUnits;
     private final DistanceUnit distanceUnits;
     private DriveState state;
     private final Driver driver;
     public DriveCommand(
-            Pose pose, double speed,
+            Pose pose,
             AngleUnit angleUnits, DistanceUnit distanceUnits,
             Driver driver
     ) {
         this.pose = pose;
-        this.speed = speed;
         this.angleUnits = angleUnits;
         this.distanceUnits = distanceUnits;
         this.driver = driver;
@@ -38,7 +36,7 @@ public class DriveCommand extends Command {
         switch(state) {
             case DRIVING:
                 pose = driver.drive(
-                        pose, speed,
+                        pose,
                         angleUnits, distanceUnits
                 );
                 if(pose == null) {
