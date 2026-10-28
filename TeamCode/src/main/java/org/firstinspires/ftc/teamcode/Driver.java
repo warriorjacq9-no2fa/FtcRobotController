@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
+import androidx.annotation.NonNull;
+
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -51,6 +53,8 @@ public class Driver {
     private double oldYError = 0;
     private double oldRxError = 0;
 
+    private Pose currentPose;
+
     public Driver(
             DcMotorEx frontLeft, DcMotorEx frontRight,
             DcMotorEx backLeft, DcMotorEx backRight,
@@ -66,6 +70,8 @@ public class Driver {
 
         heading = 0;
         oldHeading = 0;
+
+        currentPose = new Pose(0, 0, 0);
 
         frontLeft.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
         frontRight.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
@@ -105,30 +111,50 @@ public class Driver {
     }
 
     /**
+     * Get current pose relative to when the
+     * Driver class was initialized
+     * This result is only valid if {@link #loop()}
+     * is called every loop
+     * @param angleUnits Angle units for pose
+     * @param distanceUnits Distance units for
+     *                      pose
+     * @return Current pose
+     */
+    public Pose getCurrentPose(AngleUnit angleUnits, DistanceUnit distanceUnits) {
+        return new Pose(
+                distanceUnits.fromMeters(currentPose.x),
+                distanceUnits.fromMeters(currentPose.y),
+                angleUnits.fromRadians(currentPose.heading)
+        );
+    }
+
+    /**
+     * Get current pose relative to when the
+     * Driver class was initialized
+     * This result is only valid if {@link #loop()}
+     * is called every loop
+     * @return Current pose
+     */
+    public Pose getCurrentPose() {
+        return currentPose;
+    }
+
+    /**
      * Drive to a given relative pose in the
      * global frame
      * @param dPose Relative target pose
      * @param angleUnits Angle units for pose
      * @param distanceUnits Distance units for
-     *                      pose and speed
-     * @return Value to pass back to this
-     * function next iteration, or null if done.
-     * Essentially dPose - poseMoved
+     *                      pose
+     * @return True if done, false otherwise
      */
-    public Pose drive(
-            Pose dPose,
+    public boolean drive(
+            @NonNull Pose dPose,
             AngleUnit angleUnits, DistanceUnit distanceUnits
     ) {
-        if(dPose == null) {
-            frontLeft.setPower(0);
-            frontRight.setPower(0);
-            backLeft.setPower(0);
-            backRight.setPower(0);
-            return null;
-        }
-        double x = distanceUnits.toMeters(dPose.x);
-        double y = distanceUnits.toMeters(dPose.y);
-        double rx = angleUnits.toRadians(dPose.heading);
+        double x = currentPose.x - distanceUnits.toMeters(dPose.x);
+        double y = currentPose.y - distanceUnits.toMeters(dPose.y);
+        double rx = currentPose.heading - angleUnits.toRadians(dPose.heading);
         if(
                 Math.abs(x) < TOLERANCE_M &&
                 Math.abs(y) < TOLERANCE_M &&
@@ -138,38 +164,15 @@ public class Driver {
             frontRight.setPower(0);
             backLeft.setPower(0);
             backRight.setPower(0);
-            return null;
+            return true;
         }
 
-        double flEncoder = frontLeft.getCurrentPosition();
-        double frEncoder = frontRight.getCurrentPosition();
-        double blEncoder = backLeft.getCurrentPosition();
-        double brEncoder = backRight.getCurrentPosition();
-
-        double flRadians = ((flEncoder - oldFlEncoder) / ENCODER_CPR) * 2 * Math.PI;
-        double frRadians = ((frEncoder - oldFrEncoder) / ENCODER_CPR) * 2 * Math.PI;
-        double blRadians = ((blEncoder - oldBlEncoder) / ENCODER_CPR) * 2 * Math.PI;
-        double brRadians = ((brEncoder - oldBrEncoder) / ENCODER_CPR) * 2 * Math.PI;
-
-        double dx = (WHEEL_DIAMETER_M / 8) * (flRadians + frRadians + blRadians + brRadians);
-        double dy = (WHEEL_DIAMETER_M / 8) * (flRadians - frRadians - blRadians + brRadians);
-
-        double dHeading = normalize(heading - oldHeading);
-
-        double g_dx = Math.cos(heading) * dx - Math.sin(heading) * dy;
-        double g_dy = Math.sin(heading) * dx + Math.cos(heading) * dy;
-
-        Pose pose = new Pose(
-                dPose.x - distanceUnits.fromMeters(g_dx),
-                dPose.y - distanceUnits.fromMeters(g_dy),
-                dPose.heading - angleUnits.fromRadians(dHeading)
-        );
-
-        double xError = Math.cos(heading) * distanceUnits.toMeters(pose.x) +
-                Math.sin(heading) * distanceUnits.toMeters(pose.y);
-        double yError = -Math.sin(heading) * distanceUnits.toMeters(pose.x) +
-                Math.cos(heading) * distanceUnits.toMeters(pose.y);
-        double rxError = angleUnits.toRadians(pose.heading);
+        // Transform x and y errors to robot local frame
+        double xError = Math.cos(currentPose.heading) * x +
+                Math.sin(currentPose.heading) * y;
+        double yError = -Math.sin(currentPose.heading) * x +
+                Math.cos(currentPose.heading) * y;
+        double rxError = rx;
 
         double currentTime = loopTimer.seconds();
         double loopTime = currentTime - lastTime;
@@ -206,14 +209,9 @@ public class Driver {
         backRight.setVelocity(brSpeed, AngleUnit.RADIANS);
 
         if(DEBUG) {
-            telemetry.addData("Moved wheel", "%f %f %f %f",
-                    flRadians, frRadians, blRadians, brRadians
-            );
-            telemetry.addData("Moved local", "%f %f %f", dx, dy, (oldHeading - heading));
-            telemetry.addData("Moved global", "%f %f", g_dx, g_dy);
-            telemetry.addData("Next global", "%f %f %f",
-                    distanceUnits.toMeters(pose.x), distanceUnits.toMeters(pose.y),
-                    angleUnits.toRadians(pose.heading)
+            telemetry.addData("Global error", "%f %f %f",
+                    distanceUnits.toMeters(x), distanceUnits.toMeters(y),
+                    angleUnits.toRadians(rx)
             );
             telemetry.addData("Error", "%f %f %f", xError, yError, rxError);
             telemetry.addData("Wheel speeds", "%f %f %f %f",
@@ -229,13 +227,7 @@ public class Driver {
             telemetry.addData("Loop time", "%f", loopTime);
         }
 
-        oldFlEncoder = flEncoder;
-        oldFrEncoder = frEncoder;
-        oldBlEncoder = blEncoder;
-        oldBrEncoder = brEncoder;
-        oldHeading = heading;
-
-        return pose;
+        return false;
     }
 
     private enum DriverState {
@@ -252,7 +244,29 @@ public class Driver {
      */
     public void loop() {
         heading = normalize(-imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS));
-        telemetry.addData("Heading", heading);
+
+        double flEncoder = frontLeft.getCurrentPosition();
+        double frEncoder = frontRight.getCurrentPosition();
+        double blEncoder = backLeft.getCurrentPosition();
+        double brEncoder = backRight.getCurrentPosition();
+
+        double flRadians = ((flEncoder - oldFlEncoder) / ENCODER_CPR) * 2 * Math.PI;
+        double frRadians = ((frEncoder - oldFrEncoder) / ENCODER_CPR) * 2 * Math.PI;
+        double blRadians = ((blEncoder - oldBlEncoder) / ENCODER_CPR) * 2 * Math.PI;
+        double brRadians = ((brEncoder - oldBrEncoder) / ENCODER_CPR) * 2 * Math.PI;
+
+        double dx = (WHEEL_DIAMETER_M / 8) * (flRadians + frRadians + blRadians + brRadians);
+        double dy = (WHEEL_DIAMETER_M / 8) * (flRadians - frRadians - blRadians + brRadians);
+
+        double g_dx = Math.cos(heading) * dx - Math.sin(heading) * dy;
+        double g_dy = Math.sin(heading) * dx + Math.cos(heading) * dy;
+
+        currentPose = new Pose(
+                currentPose.x + g_dx,
+                currentPose.y + g_dy,
+                heading
+        );
+
         switch(state) {
             case GET_COMMAND:
                 Command cmd = commands.peek();
@@ -269,9 +283,22 @@ public class Driver {
                     state = DriverState.GET_COMMAND;
                 break;
         }
-        telemetry.addData("Driver state", state);
-        telemetry.addData("currentCmd", currentCmd);
-        telemetry.addData("Commands left", commands.size());
+        if(DEBUG) {
+            telemetry.addData("Moved wheel", "%f %f %f %f",
+                    flRadians, frRadians, blRadians, brRadians
+            );
+            telemetry.addData("Moved local", "%f %f %f", dx, dy, (oldHeading - heading));
+            telemetry.addData("Moved global", "%f %f", g_dx, g_dy);
+            telemetry.addData("Current pose", currentPose);
+            telemetry.addData("Driver state", state);
+            telemetry.addData("currentCmd", currentCmd);
+            telemetry.addData("Commands left", commands.size());
+        }
+        oldFlEncoder = flEncoder;
+        oldFrEncoder = frEncoder;
+        oldBlEncoder = blEncoder;
+        oldBrEncoder = brEncoder;
+        oldHeading = heading;
     }
 
     /**

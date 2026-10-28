@@ -35,11 +35,11 @@ public class DriveCommand extends Command {
     public void run() {
         switch(state) {
             case DRIVING:
-                pose = driver.drive(
+                boolean res = driver.drive(
                         pose,
                         angleUnits, distanceUnits
                 );
-                if(pose == null) {
+                if(res) {
                     state = DriveState.DONE;
                 }
                 break;
