@@ -7,7 +7,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 @TeleOp(name ="TestTele0p")
-public class Teleop extends OpMode {
+public class KrowTeleop extends OpMode {
 
     private static final double SPEED = (750) / 52.0;
     private DcMotorEx FrontLeft = null;
@@ -34,9 +34,20 @@ public class Teleop extends OpMode {
          /* ^-o */ FrontRight.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE); /* Speed 0 = Break */
             /* v-o */  BackRight.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);  /* Speed 0 = Break */
         /* Set Wheel Behavior when Speed = 0 To break */
-
     }
-
+    String FL = "x";
+    String BL = "x";
+    String FR = "x";
+    String BR = "x";
+    public String Display(double P){
+        if (P < 0) {
+            return "^";
+        } if (P > 0) {
+            return "v";
+        } else {
+            return "o";
+        }
+    }
     private void drive() {
         /* (^\v) () */  double forward = -gamepad1.left_stick_y;  /* Set Y-axis of Left Stick to Forward */
         /* () (<\>) */  double strafe = gamepad1.left_stick_x;    /* Set X-axis of Left Stick to Strafe */
@@ -49,31 +60,24 @@ public class Teleop extends OpMode {
         FrontRight.setPower( FLPower );
         BackLeft.setPower( BLPower );
         BackRight.setPower( BRPower );
-        Display.(FLPower)
-        public Void Display(W,P)
-        String FL = "x";
-        String BL = "x";
-        String FR = "x";
-        String BR = "x";
-
-        if ( ( forward + strafe + turn ) <= 0 ) {
-            FL = "^";
-        } if ( ( forward + strafe + turn ) >= 0 ) {
-            FL = "v";
-        } else {
-            FL = "o";
+        String PreFL = FL;
+        String PreBL = BL;
+        String PreFR = FR;
+        String PreBR = BR;
+        String FL = Display(FLPower);
+        String BL = Display(BLPower);
+        String FR = Display(FRPower);
+        String BR = Display(BRPower);
+        if (!(PreFL + PreBL + PreFR + PreBR).equals(FL + BL + FR + BR)){
+            telemetry.addLine(FL + FR);
+            telemetry.addLine(BL + BR);
+            telemetry.update();
         }
 
 
-        ( forward + strafe - turn );
-
-        ( forward - strafe + turn );
-        ( forward - strafe - turn );
-
-
-        telemetry.addLine("n/a");
-        telemetry.update();
     }
 
-
+    public void loop(){
+        drive();
+    }
 }

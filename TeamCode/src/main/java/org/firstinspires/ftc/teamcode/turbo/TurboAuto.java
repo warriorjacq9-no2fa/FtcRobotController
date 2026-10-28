@@ -98,11 +98,6 @@ public class TurboAuto extends OpMode {
                 // TODO: shoot x4
                 driver.doCommand(new WaitCommand(1));
 
-                driver.doCommand(new DriveCommand(
-                ));
-                state = AutoState.WAIT;
-                break;
-
             case WAIT:
                 if(driver.isCommandsEmpty())
                     state = AutoState.COMPLETE;
