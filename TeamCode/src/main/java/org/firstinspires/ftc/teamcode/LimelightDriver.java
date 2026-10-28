@@ -4,6 +4,7 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 
 import com.qualcomm.hardware.limelightvision.LLResult;
+import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -11,8 +12,13 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
+import org.firstinspires.ftc.robotcore.external.navigation.Position;
+
+import java.util.List;
 
 public class LimelightDriver {
+    private static final int FIDUCIALID_0 = 30;
     // Min and max position in radians
     private static final double MAX_POSITION = 2.6;
     private static final double MIN_POSITION = -2.6;
@@ -25,7 +31,6 @@ public class LimelightDriver {
     private final Telemetry telemetry;
     // 0-centered, radians
     private double position = 0;
-    private double heading = 0, oldHeading = 0;
     private final ElapsedTime loopTimer = new ElapsedTime();
     private final ElapsedTime memTrackTimer = new ElapsedTime();
     private double lastTime = 0;
@@ -66,11 +71,8 @@ public class LimelightDriver {
         return angle;
     }
 
-    double memTx = 0;
-    public void loop() {
-        heading = normalize(-imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS));
-        telemetry.addData("Heading", heading);
-
+    Pose pose = null;
+    public void loop(double dx, double dy, double heading) {
         LLResult res = ll.getLatestResult();
 
         double currentTime = loopTimer.seconds();
@@ -90,22 +92,32 @@ public class LimelightDriver {
                     break;
                 }
 
-                memTx -= (oldHeading - heading); // Account for movement
 
-                telemetry.addData("Memory track", "error %f, %f left",
-                        memTx, 2 - memTrackTimer.seconds()
+                double targetAngle = Math.atan2(pose.y, pose.x);
+                double currentAngle = heading + position;
+                double memXError = currentAngle - targetAngle;
+
+                telemetry.addData(
+                        "Memory track", "%f %f, angle %f, current %f",
+                        pose.x, pose.y, targetAngle, currentAngle
                 );
 
-                xIntegral += memTx * loopTime;
+                // Adjust for movement
+                pose = new Pose(
+                        pose.x - dx,
+                        pose.y - dy,
+                        0
+                );
 
-                xDerivative = filter((memTx - oldXError) / loopTime, xDerivative);
+                xIntegral += memXError * loopTime;
 
-                double xUt_mem = Kp * memTx + Ki * xIntegral + Kd * xDerivative;
+                xDerivative = filter((memXError - oldXError) / loopTime, xDerivative);
 
-                oldXError = memTx;
+                double xUt_mem = Kp * memXError + Ki * xIntegral + Kd * xDerivative;
+
+                oldXError = memXError;
 
                 position += xUt_mem;
-                memTx -= xUt_mem;
 
                 if(position > MAX_POSITION)
                     position = MAX_POSITION;
@@ -113,20 +125,14 @@ public class LimelightDriver {
                     position = MIN_POSITION;
 
                 servo.setPosition((position - MIN_POSITION) / (MAX_POSITION - MIN_POSITION));
-                telemetry.addData("X error", memTx);
+                telemetry.addData("X error", memXError);
                 telemetry.addData("PID out", xUt_mem);
                 telemetry.addData("PID integral", xIntegral);
                 telemetry.addData("PID derivative", xDerivative);
                 break;
 
             case LL_TRACK:
-                double xError;
-                if(res != null && res.isValid()) {
-                    xError = AngleUnit.DEGREES.toRadians(res.getTx());
-                    memTx = xError;
-                    memTrackTimer.reset();
-                    telemetry.addLine("Tracking");
-                } else {
+                if(res == null || !res.isValid()) {
                     if(memTrackTimer.seconds() > 0.1) {
                         memTrackTimer.reset();
                         // Lost lock, start memory track
@@ -134,6 +140,32 @@ public class LimelightDriver {
                     }
                     break;
                 }
+
+                List<LLResultTypes.FiducialResult> fidRes = res.getFiducialResults();
+                boolean found = false;
+                double xError = 0;
+
+                for(LLResultTypes.FiducialResult fid: fidRes) {
+                    if(fid.getFiducialId() == FIDUCIALID_0) {
+                        found = true;
+                        Position pos = fid.getTargetPoseCameraSpace().getPosition();
+                        pose = new Pose(pos.x, pos.y, 0);
+                        xError = fid.getTargetXDegrees();
+                        break;
+                    }
+                }
+
+                if(!found) {
+                    if(memTrackTimer.seconds() > 0.1) {
+                        memTrackTimer.reset();
+                        // Lost lock, start memory track
+                        state = LimelightState.LL_MEM;
+                    }
+                    break;
+                }
+
+                memTrackTimer.reset();
+                telemetry.addLine("Tracking");
 
                 xIntegral += xError * loopTime;
 
@@ -156,8 +188,6 @@ public class LimelightDriver {
                 telemetry.addData("PID integral", xIntegral);
                 telemetry.addData("PID derivative", xDerivative);
         }
-
-        oldHeading = heading;
 
         telemetry.addData("Position", position);
         telemetry.addData("Loop time", loopTime);

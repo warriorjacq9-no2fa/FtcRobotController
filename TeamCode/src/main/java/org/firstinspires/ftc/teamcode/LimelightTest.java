@@ -9,9 +9,12 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+
 @Autonomous(name="LimelightTest")
 public class LimelightTest extends OpMode {
     private LimelightDriver driver;
+    private IMU imu;
 
     @Override
     public void init() {
@@ -21,7 +24,7 @@ public class LimelightTest extends OpMode {
         limelight.pipelineSwitch(0);
         limelight.start();
 
-        IMU imu = hardwareMap.get(IMU.class, "imu");
+        imu = hardwareMap.get(IMU.class, "imu");
         RevHubOrientationOnRobot orientationOnRobot = new RevHubOrientationOnRobot(
                 RevHubOrientationOnRobot.LogoFacingDirection.UP,
                 RevHubOrientationOnRobot.UsbFacingDirection.LEFT
@@ -39,7 +42,10 @@ public class LimelightTest extends OpMode {
 
     @Override
     public void loop() {
-        driver.loop();
+        double heading = -imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
+        driver.loop(0, 0, heading);
+
+        telemetry.addData("Heading", heading);
         telemetry.update();
     }
 }
