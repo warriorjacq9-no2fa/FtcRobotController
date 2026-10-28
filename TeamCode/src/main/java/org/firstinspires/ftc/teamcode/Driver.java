@@ -20,8 +20,8 @@ public class Driver {
     private static final double TOLERANCE_RAD = 0.02;
 
     /* Counts per revolution, found on the product page for the motor */
-    private static final double ENCODER_CPR = 384.5;
-    private static final double WHEEL_RADIUS_M = 0.052;
+    private static final double ENCODER_CPR = 537.7;
+    private static final double WHEEL_DIAMETER_M = 0.104;
 
     /* PID constants */
     private static final double Kp = 10;
@@ -151,8 +151,8 @@ public class Driver {
         double blRadians = ((blEncoder - oldBlEncoder) / ENCODER_CPR) * 2 * Math.PI;
         double brRadians = ((brEncoder - oldBrEncoder) / ENCODER_CPR) * 2 * Math.PI;
 
-        double dx = (WHEEL_RADIUS_M / 4) * (flRadians + frRadians + blRadians + brRadians);
-        double dy = (WHEEL_RADIUS_M / 4) * (flRadians - frRadians - blRadians + brRadians);
+        double dx = (WHEEL_DIAMETER_M / 8) * (flRadians + frRadians + blRadians + brRadians);
+        double dy = (WHEEL_DIAMETER_M / 8) * (flRadians - frRadians - blRadians + brRadians);
 
         double dHeading = normalize(heading - oldHeading);
 
