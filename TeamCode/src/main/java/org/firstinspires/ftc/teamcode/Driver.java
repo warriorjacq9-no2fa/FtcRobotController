@@ -290,6 +290,7 @@ public class Driver {
             telemetry.addData("Moved local", "%f %f %f", dx, dy, (oldHeading - heading));
             telemetry.addData("Moved global", "%f %f", g_dx, g_dy);
             telemetry.addData("Current pose", currentPose);
+            telemetry.addData("Heading", heading);
             telemetry.addData("Driver state", state);
             telemetry.addData("currentCmd", currentCmd);
             telemetry.addData("Commands left", commands.size());
