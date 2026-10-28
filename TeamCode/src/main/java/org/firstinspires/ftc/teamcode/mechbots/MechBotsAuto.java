@@ -77,43 +77,11 @@ public class MechBotsAuto extends OpMode {
         switch(state) {
             case INIT:
                 driver.doCommand(new DriveCommand(
-                        new Pose(50, 0, 0), SPEED,
+                        new Pose(1140, 635, 0),
                         AngleUnit.DEGREES, DistanceUnit.MM,
                         driver
                 ));
                 driver.doCommand(new WaitCommand(1));
-                /*intake.setVelocity(INTAKE_SPEED);
-
-                driver.doCommand(new DriveCommand(
-                        new Pose(580, 920, 45), SPEED,
-                        AngleUnit.DEGREES, DistanceUnit.MM,
-                        driver
-                ));
-
-                driver.doCommand(new ShootCommand(shooter, sGate));
-
-                driver.doCommand(new DriveCommand(
-                        new Pose(1350, -900, -90), SPEED,
-                        AngleUnit.DEGREES, DistanceUnit.MM,
-                        driver
-                ));
-
-                // TODO: intake from flower
-                driver.doCommand(new WaitCommand(1));
-
-                driver.doCommand(new DriveCommand(
-                        new Pose(1350, 900, 225), SPEED,
-                        AngleUnit.DEGREES, DistanceUnit.MM,
-                        driver
-                ));
-
-                driver.doCommand(new ShootCommand(shooter, sGate));
-
-                driver.doCommand(new DriveCommand(
-                        new Pose(-900, -200, 0), SPEED,
-                        AngleUnit.RADIANS, DistanceUnit.INCH,
-                        driver
-                ));*/
                 state = AutoState.WAIT;
                 break;
 
