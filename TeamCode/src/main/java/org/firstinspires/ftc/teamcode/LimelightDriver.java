@@ -27,7 +27,7 @@ public class LimelightDriver {
     private static final double Kd = 0.0001;
     private final Limelight3A ll;
     private final Servo servo;
-    private final IMU imu;
+    private final Driver driver;
     private final Telemetry telemetry;
     // 0-centered, radians
     private double position = 0;
@@ -46,11 +46,11 @@ public class LimelightDriver {
 
     public LimelightDriver(
             Limelight3A limelight, Servo servo,
-            IMU imu, Telemetry telemetry
+            Driver driver, Telemetry telemetry
     ) {
         this.ll = limelight;
         this.servo = servo;
-        this.imu = imu;
+        this.driver = driver;
         this.telemetry = telemetry;
 
         ll.pipelineSwitch(0);
@@ -71,8 +71,9 @@ public class LimelightDriver {
         return angle;
     }
 
-    Pose pose = null;
-    public void loop(double dx, double dy, double heading) {
+    Pose oldPose = new Pose(0, 0, 0);
+    Pose pose = new Pose(0, 0, 0);
+    public void loop() {
         LLResult res = ll.getLatestResult();
 
         double currentTime = loopTimer.seconds();
@@ -92,15 +93,19 @@ public class LimelightDriver {
                     break;
                 }
 
+                Pose currentPose = driver.getCurrentPose();
 
                 double targetAngle = Math.atan2(pose.y, pose.x);
-                double currentAngle = heading + position;
+                double currentAngle = currentPose.heading + position;
                 double memXError = currentAngle - targetAngle;
 
                 telemetry.addData(
-                        "Memory track", "%f %f, angle %f, current %f",
+                        "Memory track target", "%f %f, angle %f, current %f",
                         pose.x, pose.y, targetAngle, currentAngle
                 );
+
+                double dx = currentPose.x - oldPose.x;
+                double dy = currentPose.y - oldPose.y;
 
                 // Adjust for movement
                 pose = new Pose(
@@ -129,6 +134,8 @@ public class LimelightDriver {
                 telemetry.addData("PID out", xUt_mem);
                 telemetry.addData("PID integral", xIntegral);
                 telemetry.addData("PID derivative", xDerivative);
+
+                oldPose = currentPose;
                 break;
 
             case LL_TRACK:

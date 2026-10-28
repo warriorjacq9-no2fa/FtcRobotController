@@ -6,6 +6,7 @@ import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 
@@ -13,7 +14,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 @Autonomous(name="LimelightTest")
 public class LimelightTest extends OpMode {
-    private LimelightDriver driver;
+    private LimelightDriver llDriver;
+    private Driver driver;
     private IMU imu;
 
     @Override
@@ -24,6 +26,10 @@ public class LimelightTest extends OpMode {
         limelight.pipelineSwitch(0);
         limelight.start();
 
+        DcMotorEx frontLeft = hardwareMap.get(DcMotorEx.class, "frontLeft");
+        DcMotorEx frontRight = hardwareMap.get(DcMotorEx.class, "frontRight");
+        DcMotorEx backLeft = hardwareMap.get(DcMotorEx.class, "backLeft");
+        DcMotorEx backRight = hardwareMap.get(DcMotorEx.class, "backRight");
         imu = hardwareMap.get(IMU.class, "imu");
         RevHubOrientationOnRobot orientationOnRobot = new RevHubOrientationOnRobot(
                 RevHubOrientationOnRobot.LogoFacingDirection.UP,
@@ -32,20 +38,22 @@ public class LimelightTest extends OpMode {
         imu.initialize(new IMU.Parameters(orientationOnRobot));
         imu.resetYaw();
 
-        driver = new LimelightDriver(
+        driver = new Driver(frontLeft, frontRight, backLeft, backRight,
+                imu, telemetry
+        );
+
+        llDriver = new LimelightDriver(
                 limelight,
                 hardwareMap.get(Servo.class, "servo"),
-                imu,
+                driver,
                 telemetry
         );
     }
 
     @Override
     public void loop() {
-        double heading = -imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
-        driver.loop(0, 0, heading);
-
-        telemetry.addData("Heading", heading);
+        driver.loop();
+        llDriver.loop();
         telemetry.update();
     }
 }
