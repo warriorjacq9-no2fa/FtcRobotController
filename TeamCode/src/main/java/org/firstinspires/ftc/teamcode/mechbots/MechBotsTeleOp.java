@@ -1,13 +1,10 @@
 package org.firstinspires.ftc.teamcode.mechbots;
 
-import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.IMU;
-import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
@@ -59,14 +56,14 @@ public class MechBotsTeleOp extends LinearOpMode {
         if(gamepad1.a) {
             intake.setPower(0);
         } else {
-            intake.setPower(0.5);
+            intake.setPower(1);
         }
 
     }
 
     private void runShooter() {
         if(gamepad2.a)
-            sGate.setPower(0.5);
+            sGate.setPower(1);
         else
             sGate.setPower(0);
 
@@ -112,6 +109,8 @@ public class MechBotsTeleOp extends LinearOpMode {
         );
         imu.initialize(new IMU.Parameters(orientationOnRobot));
 
+        intake.setDirection(DcMotorEx.Direction.REVERSE);
+
         frontLeft.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
         frontRight.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
         backLeft.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
@@ -135,7 +134,7 @@ public class MechBotsTeleOp extends LinearOpMode {
             runImu();
             if(gamepad1.left_trigger_pressed) {
                 intake.setPower(-0.5);
-                sGate.setPower(-0.5);
+                sGate.setPower(-1);
                 shooter.setPower(-0.5);
             } else {
                 runIntake();
@@ -145,7 +144,7 @@ public class MechBotsTeleOp extends LinearOpMode {
             if(gamepad1.right_bumper) {
                 imu.resetYaw();
             }
-            if(gamepad1.right_trigger > 0.2) {
+            if(gamepad1.right_trigger_pressed) {
                 driveGlobal();
             } else {
                 drive();

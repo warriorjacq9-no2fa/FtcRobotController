@@ -3,9 +3,7 @@ package org.firstinspires.ftc.teamcode.turbo;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 
@@ -26,7 +24,6 @@ public class TurboTeleOp extends LinearOpMode {
      * from mm/s
      */
     private static final double SPEED = (750) / 52.0;
-    private static final double INTAKE_SPEED = 110;
 
     private DcMotorEx frontLeft, frontRight, backLeft, backRight;
     private DcMotorEx intake, shooter;
@@ -64,7 +61,7 @@ public class TurboTeleOp extends LinearOpMode {
             gate.setPosition(0);
 
         if(gamepad2.right_trigger_pressed) {
-            shooter.setPower(0.6);
+            shooter.setPower(0.7);
         } else {
             shooter.setPower(0);
         }
@@ -72,9 +69,9 @@ public class TurboTeleOp extends LinearOpMode {
 
     private void runIntake() {
         if(gamepad1.a) {
-            intake.setVelocity(0);
+            intake.setPower(0);
         } else {
-            intake.setVelocity(-INTAKE_SPEED, AngleUnit.RADIANS);
+            intake.setPower(1);
         }
     }
     private void driveGlobal() {
@@ -112,6 +109,8 @@ public class TurboTeleOp extends LinearOpMode {
                 RevHubOrientationOnRobot.UsbFacingDirection.RIGHT
         );
         imu.initialize(new IMU.Parameters(orientationOnRobot));
+
+        intake.setDirection(DcMotorEx.Direction.REVERSE);
 
         frontLeft.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
         frontRight.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
