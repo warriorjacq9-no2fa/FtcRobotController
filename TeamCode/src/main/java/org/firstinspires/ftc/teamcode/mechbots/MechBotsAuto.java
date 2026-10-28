@@ -77,7 +77,7 @@ public class MechBotsAuto extends OpMode {
         switch(state) {
             case INIT:
                 driver.doCommand(new DriveCommand(
-                        new Pose(1140, 635, 0),
+                        new Pose(300, 1100, 0),
                         AngleUnit.DEGREES, DistanceUnit.MM,
                         driver
                 ));
