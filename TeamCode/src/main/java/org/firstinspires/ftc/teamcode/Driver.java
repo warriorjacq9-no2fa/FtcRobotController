@@ -152,9 +152,9 @@ public class Driver {
             @NonNull Pose dPose,
             AngleUnit angleUnits, DistanceUnit distanceUnits
     ) {
-        double x = currentPose.x - distanceUnits.toMeters(dPose.x);
-        double y = currentPose.y - distanceUnits.toMeters(dPose.y);
-        double rx = currentPose.heading - angleUnits.toRadians(dPose.heading);
+        double x = distanceUnits.toMeters(dPose.x) - currentPose.x;
+        double y = distanceUnits.toMeters(dPose.y) - currentPose.y;
+        double rx = angleUnits.toRadians(dPose.heading) - currentPose.heading;
         if(
                 Math.abs(x) < TOLERANCE_M &&
                 Math.abs(y) < TOLERANCE_M &&
