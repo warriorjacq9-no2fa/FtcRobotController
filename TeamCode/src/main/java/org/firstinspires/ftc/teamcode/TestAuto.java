@@ -14,15 +14,7 @@ import org.firstinspires.ftc.teamcode.commands.WaitCommand;
 @Autonomous(name="TestAuto")
 public class TestAuto extends OpMode {
 
-    private static final double SPEED = (500) / 52.0;
-
     private Driver driver;
-    private DcMotorEx frontLeft;
-    private DcMotorEx frontRight;
-    private DcMotorEx backLeft;
-    private DcMotorEx backRight;
-    private DcMotorEx intake;
-    private IMU imu;
 
     private enum AutoState {
         INIT,
@@ -36,12 +28,11 @@ public class TestAuto extends OpMode {
     public void init() {
         state = AutoState.INIT;
 
-        frontLeft = hardwareMap.get(DcMotorEx.class, "frontLeft");
-        frontRight = hardwareMap.get(DcMotorEx.class, "frontRight");
-        backLeft = hardwareMap.get(DcMotorEx.class, "backLeft");
-        backRight = hardwareMap.get(DcMotorEx.class, "backRight");
-        intake = hardwareMap.get(DcMotorEx.class, "intake");
-        imu = hardwareMap.get(IMU.class, "imu");
+        DcMotorEx frontLeft = hardwareMap.get(DcMotorEx.class, "frontLeft");
+        DcMotorEx frontRight = hardwareMap.get(DcMotorEx.class, "frontRight");
+        DcMotorEx backLeft = hardwareMap.get(DcMotorEx.class, "backLeft");
+        DcMotorEx backRight = hardwareMap.get(DcMotorEx.class, "backRight");
+        IMU imu = hardwareMap.get(IMU.class, "imu");
 
         RevHubOrientationOnRobot orientationOnRobot = new RevHubOrientationOnRobot(
                 RevHubOrientationOnRobot.LogoFacingDirection.DOWN,

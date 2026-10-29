@@ -10,13 +10,10 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-
 @Autonomous(name="LimelightTest")
 public class LimelightTest extends OpMode {
     private LimelightDriver llDriver;
     private Driver driver;
-    private IMU imu;
 
     @Override
     public void init() {
@@ -30,7 +27,7 @@ public class LimelightTest extends OpMode {
         DcMotorEx frontRight = hardwareMap.get(DcMotorEx.class, "frontRight");
         DcMotorEx backLeft = hardwareMap.get(DcMotorEx.class, "backLeft");
         DcMotorEx backRight = hardwareMap.get(DcMotorEx.class, "backRight");
-        imu = hardwareMap.get(IMU.class, "imu");
+        IMU imu = hardwareMap.get(IMU.class, "imu");
         RevHubOrientationOnRobot orientationOnRobot = new RevHubOrientationOnRobot(
                 RevHubOrientationOnRobot.LogoFacingDirection.UP,
                 RevHubOrientationOnRobot.UsbFacingDirection.LEFT

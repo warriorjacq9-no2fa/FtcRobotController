@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode; // TODO: refactor all logging for graphing with FTC Dash
+package org.firstinspires.ftc.teamcode;
 
 import androidx.annotation.NonNull;
 
@@ -41,7 +41,7 @@ public class Driver {
     private double oldBrEncoder;
     private double heading;
     private double oldHeading;
-    private ElapsedTime loopTimer = new ElapsedTime();
+    private final ElapsedTime loopTimer = new ElapsedTime();
     private double lastTime = 0;
     private double xIntegral = 0;
     private double yIntegral = 0;
@@ -154,11 +154,11 @@ public class Driver {
     ) {
         double x = distanceUnits.toMeters(dPose.x) - currentPose.x;
         double y = distanceUnits.toMeters(dPose.y) - currentPose.y;
-        double rx = angleUnits.toRadians(dPose.heading) - currentPose.heading;
+        double rxError = angleUnits.toRadians(dPose.heading) - currentPose.heading;
         if(
                 Math.abs(x) < TOLERANCE_M &&
                 Math.abs(y) < TOLERANCE_M &&
-                Math.abs(rx) < TOLERANCE_RAD
+                Math.abs(rxError) < TOLERANCE_RAD
         ) {
             frontLeft.setPower(0);
             frontRight.setPower(0);
@@ -172,7 +172,6 @@ public class Driver {
                 Math.sin(currentPose.heading) * y;
         double yError = -Math.sin(currentPose.heading) * x +
                 Math.cos(currentPose.heading) * y;
-        double rxError = rx;
 
         double currentTime = loopTimer.seconds();
         double loopTime = currentTime - lastTime;
@@ -194,14 +193,10 @@ public class Driver {
         oldYError = yError;
         oldRxError = rxError;
 
-        double wheelX = xUt;
-        double wheelY = yUt;
-        double wheelRx = rxUt;
-
-        double flSpeed = wheelX + wheelY + wheelRx;
-        double frSpeed = wheelX - wheelY - wheelRx;
-        double blSpeed = wheelX - wheelY + wheelRx;
-        double brSpeed = wheelX + wheelY - wheelRx;
+        double flSpeed = xUt + yUt + rxUt;
+        double frSpeed = xUt - yUt - rxUt;
+        double blSpeed = xUt - yUt + rxUt;
+        double brSpeed = xUt + yUt - rxUt;
 
         frontLeft.setVelocity(flSpeed, AngleUnit.RADIANS);
         frontRight.setVelocity(frSpeed, AngleUnit.RADIANS);
@@ -209,22 +204,25 @@ public class Driver {
         backRight.setVelocity(brSpeed, AngleUnit.RADIANS);
 
         if(DEBUG) {
-            telemetry.addData("Global error", "%f %f %f",
-                    distanceUnits.toMeters(x), distanceUnits.toMeters(y),
-                    angleUnits.toRadians(rx)
-            );
-            telemetry.addData("Error", "%f %f %f", xError, yError, rxError);
-            telemetry.addData("Wheel speeds", "%f %f %f %f",
-                    flSpeed, frSpeed, blSpeed, brSpeed
-            );
-            telemetry.addData("PID out", "%f %f %f", xUt, yUt, rxUt);
-            telemetry.addData("PID integrals", "%f %f %f",
-                    xIntegral, yIntegral, rxIntegral
-            );
-            telemetry.addData("PID derivatives", "%f %f %f",
-                    xDerivative, yDerivative, rxDerivative
-            );
-            telemetry.addData("Loop time", "%f", loopTime);
+            telemetry.addData("Global X error", distanceUnits.toMeters(x));
+            telemetry.addData("Global Y error", distanceUnits.toMeters(y));
+            telemetry.addData("X error", xError);
+            telemetry.addData("Y error", yError);
+            telemetry.addData("RX error", distanceUnits.toMeters(rxError));
+            telemetry.addData("FL speed", flSpeed);
+            telemetry.addData("FR speed", frSpeed);
+            telemetry.addData("BL speed", blSpeed);
+            telemetry.addData("BR speed", brSpeed);
+            telemetry.addData("PID X out", xUt);
+            telemetry.addData("PID Y out", yUt);
+            telemetry.addData("PID RX out", rxUt);
+            telemetry.addData("PID X integral", xIntegral);
+            telemetry.addData("PID Y integral", yIntegral);
+            telemetry.addData("PID RX integral", rxIntegral);
+            telemetry.addData("PID X derivative", xDerivative);
+            telemetry.addData("PID Y derivative", yDerivative);
+            telemetry.addData("PID RX derivative", rxDerivative);
+            telemetry.addData("Loop time", loopTime);
         }
 
         return false;
@@ -236,7 +234,7 @@ public class Driver {
     }
 
     private DriverState state;
-    private Queue<Command> commands = new ArrayDeque<>();
+    private final Queue<Command> commands = new ArrayDeque<>();
     private Command currentCmd;
 
     /**
@@ -284,11 +282,15 @@ public class Driver {
                 break;
         }
         if(DEBUG) {
-            telemetry.addData("Moved wheel", "%f %f %f %f",
-                    flRadians, frRadians, blRadians, brRadians
-            );
-            telemetry.addData("Moved local", "%f %f %f", dx, dy, (oldHeading - heading));
-            telemetry.addData("Moved global", "%f %f", g_dx, g_dy);
+            telemetry.addData("FL wheel moved", flRadians);
+            telemetry.addData("FR wheel moved", frRadians);
+            telemetry.addData("BL wheel moved", blRadians);
+            telemetry.addData("BR wheel moved", brRadians);
+            telemetry.addData("Moved X", dx);
+            telemetry.addData("Moved Y", dy);
+            telemetry.addData("Moved RX", (heading - oldHeading));
+            telemetry.addData("Moved global X", g_dx);
+            telemetry.addData("Moved global Y", g_dy);
             telemetry.addData("Current pose", currentPose);
             telemetry.addData("Heading", heading);
             telemetry.addData("Driver state", state);

@@ -1,24 +1,18 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.acmerobotics.dashboard.FtcDashboard;
-import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
-
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
-import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 
 import java.util.List;
 
 public class LimelightDriver {
-    private static final int FIDUCIALID_0 = 30;
+    private static final int FIDUCIAL_ID_0 = 30;
     // Min and max position in radians
     private static final double MAX_POSITION = 2.6;
     private static final double MIN_POSITION = -2.6;
@@ -96,13 +90,13 @@ public class LimelightDriver {
                 Pose currentPose = driver.getCurrentPose();
 
                 double targetAngle = Math.atan2(pose.y, pose.x);
-                double currentAngle = currentPose.heading + position;
+                double currentAngle = normalize(currentPose.heading + position);
                 double memXError = currentAngle - targetAngle;
 
-                telemetry.addData(
-                        "Memory track target", "%f %f, angle %f, current %f",
-                        pose.x, pose.y, targetAngle, currentAngle
-                );
+                telemetry.addData("Memory track target X", pose.x);
+                telemetry.addData("Memory track target Y", pose.y);
+                telemetry.addData("Memory track target angle", targetAngle);
+                telemetry.addData("Memory track current angle", currentAngle);
 
                 double dx = currentPose.x - oldPose.x;
                 double dy = currentPose.y - oldPose.y;
@@ -130,7 +124,7 @@ public class LimelightDriver {
                     position = MIN_POSITION;
 
                 servo.setPosition((position - MIN_POSITION) / (MAX_POSITION - MIN_POSITION));
-                telemetry.addData("X error", memXError);
+                telemetry.addData("Angle error", memXError);
                 telemetry.addData("PID out", xUt_mem);
                 telemetry.addData("PID integral", xIntegral);
                 telemetry.addData("PID derivative", xDerivative);
@@ -153,7 +147,7 @@ public class LimelightDriver {
                 double xError = 0;
 
                 for(LLResultTypes.FiducialResult fid: fidRes) {
-                    if(fid.getFiducialId() == FIDUCIALID_0) {
+                    if(fid.getFiducialId() == FIDUCIAL_ID_0) {
                         found = true;
                         Position pos = fid.getTargetPoseCameraSpace().getPosition();
                         pose = new Pose(pos.x, pos.y, 0);
@@ -190,7 +184,7 @@ public class LimelightDriver {
                     position = MIN_POSITION;
 
                 servo.setPosition((position - MIN_POSITION) / (MAX_POSITION - MIN_POSITION));
-                telemetry.addData("X error", xError);
+                telemetry.addData("Angle error", xError);
                 telemetry.addData("PID out", xUt);
                 telemetry.addData("PID integral", xIntegral);
                 telemetry.addData("PID derivative", xDerivative);

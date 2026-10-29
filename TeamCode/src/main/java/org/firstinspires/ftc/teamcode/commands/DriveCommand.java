@@ -14,7 +14,7 @@ public class DriveCommand extends Command {
         DRIVING,
         DONE
     }
-    private Pose pose;
+    private final Pose pose;
     private final AngleUnit angleUnits;
     private final DistanceUnit distanceUnits;
     private DriveState state;
@@ -52,7 +52,6 @@ public class DriveCommand extends Command {
 
     @NonNull
     public String toString() {
-        if(this.pose == null) return "";
         return String.format(Locale.ENGLISH, "DriveCommand(%s): %s",
                 this.pose.toString(), this.state.toString());
     }

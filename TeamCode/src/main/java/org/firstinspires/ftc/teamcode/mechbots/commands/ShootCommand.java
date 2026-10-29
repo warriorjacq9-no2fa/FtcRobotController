@@ -1,9 +1,13 @@
 package org.firstinspires.ftc.teamcode.mechbots.commands;
 
+import androidx.annotation.NonNull;
+
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.commands.Command;
+
+import java.util.Locale;
 
 public class ShootCommand extends Command {
     private enum ShootState {
@@ -40,5 +44,11 @@ public class ShootCommand extends Command {
                 done = true;
                 break;
         }
+    }
+
+    @NonNull
+    public String toString() {
+        return String.format(Locale.ENGLISH, "ShootCommand(): %s",
+                this.state.toString());
     }
 }

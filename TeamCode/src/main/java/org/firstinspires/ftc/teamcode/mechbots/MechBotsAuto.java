@@ -15,22 +15,11 @@ import org.firstinspires.ftc.teamcode.Driver;
 import org.firstinspires.ftc.teamcode.Pose;
 import org.firstinspires.ftc.teamcode.commands.DriveCommand;
 import org.firstinspires.ftc.teamcode.commands.WaitCommand;
-import org.firstinspires.ftc.teamcode.mechbots.commands.ShootCommand;
 
 @Autonomous(name="MechBotsAuto")
 public class MechBotsAuto extends OpMode {
 
-    private static final double SPEED = (500) / 52.0;
-    private static final double INTAKE_SPEED = 120;
-
     private Driver driver;
-    private DcMotorEx frontLeft;
-    private DcMotorEx frontRight;
-    private DcMotorEx backLeft;
-    private DcMotorEx backRight;
-    private DcMotorEx intake;
-    private DcMotorEx shooter, sGate;
-    private IMU imu;
 
     private enum AutoState {
         INIT,
@@ -45,14 +34,11 @@ public class MechBotsAuto extends OpMode {
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
         state = AutoState.INIT;
 
-        frontLeft = hardwareMap.get(DcMotorEx.class, "frontLeft");
-        frontRight = hardwareMap.get(DcMotorEx.class, "frontRight");
-        backLeft = hardwareMap.get(DcMotorEx.class, "backLeft");
-        backRight = hardwareMap.get(DcMotorEx.class, "backRight");
-        intake = hardwareMap.get(DcMotorEx.class, "intake");
-        shooter = hardwareMap.get(DcMotorEx.class, "shooter");
-        sGate = hardwareMap.get(DcMotorEx.class, "sGate");
-        imu = hardwareMap.get(IMU.class, "imu");
+        DcMotorEx frontLeft = hardwareMap.get(DcMotorEx.class, "frontLeft");
+        DcMotorEx frontRight = hardwareMap.get(DcMotorEx.class, "frontRight");
+        DcMotorEx backLeft = hardwareMap.get(DcMotorEx.class, "backLeft");
+        DcMotorEx backRight = hardwareMap.get(DcMotorEx.class, "backRight");
+        IMU imu = hardwareMap.get(IMU.class, "imu");
 
         RevHubOrientationOnRobot orientationOnRobot = new RevHubOrientationOnRobot(
                 RevHubOrientationOnRobot.LogoFacingDirection.DOWN,
