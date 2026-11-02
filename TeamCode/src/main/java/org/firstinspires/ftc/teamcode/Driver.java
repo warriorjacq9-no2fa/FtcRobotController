@@ -2,8 +2,10 @@ package org.firstinspires.ftc.teamcode;
 
 import androidx.annotation.NonNull;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.IMU;
+import com.qualcomm.robotcore.hardware.PIDCoefficients;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -14,21 +16,18 @@ import org.firstinspires.ftc.teamcode.commands.Command;
 import java.util.ArrayDeque;
 import java.util.Queue;
 
+@Config
 public class Driver {
-
-    public static final boolean DEBUG = true;
-
-    private static final double TOLERANCE_M = 0.01;
-    private static final double TOLERANCE_RAD = 0.02;
+    /* Config variables */
+    public static boolean DEBUG = true;
+    public static double TOLERANCE_M = 0.01;
+    public static double TOLERANCE_RAD = 0.02;
+    public static PIDCoefficients pid = new PIDCoefficients(10, 0.025, 0);
 
     /* Counts per revolution, found on the product page for the motor */
-    private static final double ENCODER_CPR = 537.7;
-    private static final double WHEEL_DIAMETER_M = 0.104;
+    public static double ENCODER_CPR = 537.7;
+    public static double WHEEL_DIAMETER_M = 0.104;
 
-    /* PID constants */
-    private static final double Kp = 10;
-    private static final double Ki = 0.025;
-    private static final double Kd = 0;
     private final DcMotorEx frontLeft;
     private final DcMotorEx frontRight;
     private final DcMotorEx backLeft;
@@ -185,9 +184,9 @@ public class Driver {
         yDerivative = filter((yError - oldYError) / loopTime, yDerivative);
         rxDerivative = filter((rxError - oldRxError) / loopTime, rxDerivative);
 
-        double xUt = Kp * xError + Ki * xIntegral + Kd * xDerivative;
-        double yUt = Kp * yError + Ki * yIntegral + Kd * yDerivative;
-        double rxUt = Kp * rxError + Ki * rxIntegral + Kd * rxDerivative;
+        double xUt = pid.p * xError + pid.i * xIntegral + pid.d * xDerivative;
+        double yUt = pid.p * yError + pid.i * yIntegral + pid.d * yDerivative;
+        double rxUt = pid.p * rxError + pid.i * rxIntegral + pid.d * rxDerivative;
 
         oldXError = xError;
         oldYError = yError;

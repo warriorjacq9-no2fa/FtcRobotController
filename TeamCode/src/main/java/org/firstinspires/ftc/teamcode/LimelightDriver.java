@@ -1,8 +1,10 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
+import com.qualcomm.robotcore.hardware.PIDCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -11,14 +13,15 @@ import org.firstinspires.ftc.robotcore.external.navigation.Position;
 
 import java.util.List;
 
+@Config
 public class LimelightDriver {
-    private static final int FIDUCIAL_ID_0 = 30;
-    // Min and max position in radians
-    private static final double MAX_POSITION = 2.6;
-    private static final double MIN_POSITION = -2.6;
-    private static final double Kp = 0.025;
-    private static final double Ki = 0;
-    private static final double Kd = 0.0001;
+    /* Config variables */
+    public static int FIDUCIAL_ID_0 = 30;
+    /* Min and max position in radians */
+    public static double MAX_POSITION = 2.6;
+    public static double MIN_POSITION = -2.6;
+    public static PIDCoefficients pid = new PIDCoefficients(0.025, 0, 0.0001);
+
     private final Limelight3A ll;
     private final Servo servo;
     private final Driver driver;
@@ -112,7 +115,7 @@ public class LimelightDriver {
 
                 xDerivative = filter((memXError - oldXError) / loopTime, xDerivative);
 
-                double xUt_mem = Kp * memXError + Ki * xIntegral + Kd * xDerivative;
+                double xUt_mem = pid.p * memXError + pid.i * xIntegral + pid.d * xDerivative;
 
                 oldXError = memXError;
 
@@ -172,7 +175,7 @@ public class LimelightDriver {
 
                 xDerivative = filter((xError - oldXError) / loopTime, xDerivative);
 
-                double xUt = Kp * xError + Ki * xIntegral + Kd * xDerivative;
+                double xUt = pid.p * xError + pid.i * xIntegral + pid.d * xDerivative;
 
                 oldXError = xError;
 
