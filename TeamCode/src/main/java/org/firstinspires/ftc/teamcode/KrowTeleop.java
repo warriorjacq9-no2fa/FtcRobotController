@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
-@TeleOp(name ="TestTele0p")
+@TeleOp(name ="KrowsTestTele0p")
 public class KrowTeleop extends OpMode {
 
     private static final double SPEED = (750) / 52.0;
