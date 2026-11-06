@@ -17,7 +17,7 @@ import java.util.List;
 public class LimelightDriver {
     /* Config variables */
     public static int FIDUCIAL_ID_0 = 30;
-    /* Min and max position in radians */
+    /* Min and max position in radians, positive = CCW */
     public static double MAX_POSITION = 2.6;
     public static double MIN_POSITION = -2.6;
     public static PIDCoefficients pid = new PIDCoefficients(0.025, 0, 0.0001);
@@ -101,8 +101,8 @@ public class LimelightDriver {
         return velocity.y * ux - velocity.x * uy;
     }
 
-    Pose oldPose = new Pose(0, 0, 0);
-    Pose pose = new Pose(0, 0, 0);
+    Pose oldTargetPose = new Pose(0, 0, 0);
+    Pose targetPose = new Pose(0, 0, 0);
     public void loop() {
         LLResult res = ll.getLatestResult();
 
@@ -114,6 +114,8 @@ public class LimelightDriver {
         position += ((encoder - oldEncoder) / ENCODER_CPR * TURRET_GEAR_RATIO) * 2 * Math.PI;
         position = normalize(position);
         oldEncoder = encoder;
+
+        double targetPosition = position;
 
         switch(state) {
             case LL_IDLE:
@@ -131,44 +133,28 @@ public class LimelightDriver {
                 Pose currentPose = driver.getCurrentPose();
                 Pose currentVelocity = driver.getCurrentVelocity();
 
-                double curVelTargetSpace = getPerpendicularVelocity(pose, currentVelocity);
+                double curVelTargetSpace = getPerpendicularVelocity(targetPose, currentVelocity);
 
-                double targetAngle = Math.atan2(pose.y, pose.x);
+                double targetAngle = Math.atan2(targetPose.y, targetPose.x);
                 if(PROJECTILE_SPEED > 0) targetAngle += Math.asin(curVelTargetSpace / PROJECTILE_SPEED);
+                targetAngle = normalize(targetAngle);
                 double currentAngle = normalize(currentPose.heading + position);
-                double memXError = currentAngle - targetAngle;
 
-                telemetry.addData("Memory track target X", pose.x);
-                telemetry.addData("Memory track target Y", pose.y);
+                targetPosition = normalize(position - (currentAngle - targetAngle));
+
+                telemetry.addData("Memory track target X", targetPose.x);
+                telemetry.addData("Memory track target Y", targetPose.y);
                 telemetry.addData("Memory track target angle", targetAngle);
                 telemetry.addData("Memory track current angle", currentAngle);
 
-                double dx = currentPose.x - oldPose.x;
-                double dy = currentPose.y - oldPose.y;
-
-                // Adjust for movement
-                pose = new Pose(
-                        pose.x - dx,
-                        pose.y - dy,
+                // Adjust stored target position for movement
+                targetPose = new Pose(
+                        targetPose.x - currentVelocity.x,
+                        targetPose.y - currentVelocity.y,
                         0
                 );
 
-                xIntegral += memXError * loopTime;
-
-                xDerivative = filter((memXError - oldXError) / loopTime, xDerivative);
-
-                double xUt_mem = pid.p * memXError + pid.i * xIntegral + pid.d * xDerivative;
-
-                oldXError = memXError;
-
-                turret.setPower(xUt_mem);
-
-                telemetry.addData("Angle error", memXError);
-                telemetry.addData("PID out", xUt_mem);
-                telemetry.addData("PID integral", xIntegral);
-                telemetry.addData("PID derivative", xDerivative);
-
-                oldPose = currentPose;
+                oldTargetPose = currentPose;
                 break;
 
             case LL_TRACK:
@@ -183,14 +169,13 @@ public class LimelightDriver {
 
                 List<LLResultTypes.FiducialResult> fidRes = res.getFiducialResults();
                 boolean found = false;
-                double xError = 0;
 
                 for(LLResultTypes.FiducialResult fid: fidRes) {
                     if(fid.getFiducialId() == FIDUCIAL_ID_0) {
                         found = true;
                         Position pos = fid.getTargetPoseCameraSpace().getPosition();
-                        pose = new Pose(pos.x, pos.y, 0);
-                        xError = fid.getTargetXDegrees();
+                        targetPose = new Pose(pos.x, pos.y, 0);
+                        targetPosition = normalize(position - fid.getTargetXDegrees());
                         break;
                     }
                 }
@@ -206,23 +191,32 @@ public class LimelightDriver {
 
                 memTrackTimer.reset();
                 telemetry.addLine("Tracking");
-
-                xIntegral += xError * loopTime;
-
-                xDerivative = filter((xError - oldXError) / loopTime, xDerivative);
-
-                double xUt = pid.p * xError + pid.i * xIntegral + pid.d * xDerivative;
-
-                oldXError = xError;
-
-                turret.setPower(xUt);
-
-                telemetry.addData("Angle error", xError);
-                telemetry.addData("PID out", xUt);
-                telemetry.addData("PID integral", xIntegral);
-                telemetry.addData("PID derivative", xDerivative);
+                break;
         }
 
+        if(targetPosition > MAX_POSITION) {
+            targetPosition = MAX_POSITION;
+        }
+        if(targetPosition < MIN_POSITION) {
+            targetPosition = MIN_POSITION;
+        }
+
+        double xError = targetPosition - position;
+
+        xIntegral += xError * loopTime;
+
+        xDerivative = filter((xError - oldXError) / loopTime, xDerivative);
+
+        double xUt = pid.p * xError + pid.i * xIntegral + pid.d * xDerivative;
+
+        oldXError = xError;
+
+        turret.setPower(xUt);
+
+        telemetry.addData("Angle error", xError);
+        telemetry.addData("PID out", xUt);
+        telemetry.addData("PID integral", xIntegral);
+        telemetry.addData("PID derivative", xDerivative);
         telemetry.addData("Position", position);
         telemetry.addData("Loop time", loopTime);
     }
