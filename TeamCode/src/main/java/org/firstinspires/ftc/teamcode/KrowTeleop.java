@@ -71,9 +71,10 @@ public class KrowTeleop extends OpMode {
         if (!(PreFL + PreBL + PreFR + PreBR).equals(FL + BL + FR + BR)){
             telemetry.addLine(FL + FR);
             telemetry.addLine(BL + BR);
+            if ( (FL + FR + BL + BR).equals("^^^^") ) {
+            }
             telemetry.update();
         }
-
 
     }
 
@@ -81,3 +82,27 @@ public class KrowTeleop extends OpMode {
         drive();
     }
 }
+/* if ( FL.equals("^")|| FR.equals("^") || BL.equals("^") || BR.equals("^") ) { */
+/*
+o - o
+o - o
+
+^   ^
+o - o
+v   v
+
+N/a     Forward Backward Up/right/left   Down/right/left
+(o)-(o) (o)^(o) (o)v(o) (o)/'(o) (o)\'(o) (o)\,(o) (o)/,(o)
+(o)-(o) (o)^(o) (o)v(o) (o)/'(o) (o)\'(o) (o)\,(o) (o)/,(o)
+
+
+
+Status:
+(o)=(o)
+(o)=(o)
+Wheel Directions: Actions:
+              |
+^ (o)=(o) ^   |   (o)^(o)
+^ (o)=(o) ^   |   (o)^(o)
+              |
+* */
