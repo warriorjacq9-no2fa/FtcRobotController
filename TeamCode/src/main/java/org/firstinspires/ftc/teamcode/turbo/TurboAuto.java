@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.turbo;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 
+import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -12,6 +13,7 @@ import com.qualcomm.robotcore.hardware.IMU;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.Driver;
+import org.firstinspires.ftc.teamcode.LimelightDriver;
 import org.firstinspires.ftc.teamcode.Pose;
 import org.firstinspires.ftc.teamcode.commands.DriveCommand;
 import org.firstinspires.ftc.teamcode.commands.WaitCommand;
@@ -20,6 +22,7 @@ import org.firstinspires.ftc.teamcode.commands.WaitCommand;
 public class TurboAuto extends OpMode {
 
     private Driver driver;
+    private LimelightDriver limelightDriver;
 
     private enum AutoState {
         INIT,
@@ -38,7 +41,10 @@ public class TurboAuto extends OpMode {
         DcMotorEx frontRight = hardwareMap.get(DcMotorEx.class, "frontRight");
         DcMotorEx backLeft = hardwareMap.get(DcMotorEx.class, "backLeft");
         DcMotorEx backRight = hardwareMap.get(DcMotorEx.class, "backRight");
+        DcMotorEx turret = hardwareMap.get(DcMotorEx.class, "turret");
         IMU imu = hardwareMap.get(IMU.class, "imu");
+
+        Limelight3A ll = hardwareMap.get(Limelight3A.class, "limelight");
 
         RevHubOrientationOnRobot orientationOnRobot = new RevHubOrientationOnRobot(
                 RevHubOrientationOnRobot.LogoFacingDirection.DOWN,
@@ -53,6 +59,7 @@ public class TurboAuto extends OpMode {
         backRight.setDirection(DcMotorEx.Direction.REVERSE);
 
         driver = new Driver(frontLeft, frontRight, backLeft, backRight, imu, telemetry);
+        limelightDriver = new LimelightDriver(ll, turret, driver, telemetry);
 
         telemetry.addLine("Initialized auto");
         telemetry.update();
@@ -76,13 +83,12 @@ public class TurboAuto extends OpMode {
                     state = AutoState.COMPLETE;
                 break;
 
-
-
             case COMPLETE:
                 telemetry.addLine("Done");
                 break;
         }
         driver.loop();
+        limelightDriver.loop();
         telemetry.update();
     }
 }
