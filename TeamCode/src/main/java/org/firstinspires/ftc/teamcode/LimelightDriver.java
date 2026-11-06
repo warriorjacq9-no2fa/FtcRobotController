@@ -82,19 +82,23 @@ public class LimelightDriver {
         return angle;
     }
 
-    double getParallelVelocity(Pose targetPose, Pose velocity) {
+    double getPerpendicularVelocity(Pose targetPose, Pose velocity) {
+        /* Get distance to target */
         double magnitude = Math.hypot(targetPose.x, targetPose.y);
         if(magnitude < 1e-6) return 0;
 
+        /*
+         * Create a unit vector from targetPose
+         * A unit vector has a distance of 1
+         */
         double ux = targetPose.x / magnitude;
         double uy = targetPose.y / magnitude;
 
-        double projection = velocity.x * ux + velocity.y * uy;
-
-        double vx = ux * projection;
-        double vy = uy * projection;
-
-        return vx * -uy + vy * ux;
+        /*
+         * Use the cross product to get velocity
+         * perpendicular to the target
+        */
+        return velocity.y * ux - velocity.x * uy;
     }
 
     Pose oldPose = new Pose(0, 0, 0);
@@ -127,7 +131,7 @@ public class LimelightDriver {
                 Pose currentPose = driver.getCurrentPose();
                 Pose currentVelocity = driver.getCurrentVelocity();
 
-                double curVelTargetSpace = getParallelVelocity(pose, currentVelocity);
+                double curVelTargetSpace = getPerpendicularVelocity(pose, currentVelocity);
 
                 double targetAngle = Math.atan2(pose.y, pose.x);
                 if(PROJECTILE_SPEED > 0) targetAngle += Math.asin(curVelTargetSpace / PROJECTILE_SPEED);
