@@ -5,6 +5,7 @@ import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 //Talk to Lily if you want to know where "position A" is on the field. They made it up. Eventually they'll get to telling everyone.
@@ -38,11 +39,11 @@ public class APosMechBotsAuto extends OpMode {
         backRight = hardwareMap.get(DcMotorEx.class, "backRight");
         backLeft = hardwareMap.get(DcMotorEx.class, "backLeft");
 
-        //!!!! Not yet certain what these will need to be set to. Figure it out and uncomment before testing!!!
-        //frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
-        //backRight.setDirection(DcMotorSimple.Direction.REVERSE);
-        //frontLeft.setDirection(DcMotorSimple.Direction.FORWARD);
-        //backLeft.setDirection(DcMotorSimple.Direction.FORWARD);
+        //!!!! Not yet certain what these will need to be set to for Real Bot, but for Test Guy #1 it's FR: R, BR: F, FL: F, BL: R
+        frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
+        backRight.setDirection(DcMotorSimple.Direction.FORWARD);
+        frontLeft.setDirection(DcMotorSimple.Direction.FORWARD);
+        backLeft.setDirection(DcMotorSimple.Direction.REVERSE);
 
         frontRight.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
         frontLeft.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
@@ -59,10 +60,12 @@ public class APosMechBotsAuto extends OpMode {
     }
 
     //The length of time it is in each state needs to be figured out through testing to make it work as intended!!!
+    //Talk to Lily in real life if you wanna ask about how they estimated what powers or times would work to make things do good
+    //!!!Some of the calculations used track width and length so you need to alter things based on whether you're using the 14*15 inch real bot or the 18*17 inch test guy
     public void loop() {
         switch (state) {
             case INIT:
-                if (timer.seconds() < 1) {
+                if (timer.seconds() < 0.5) {
                     drive(0.0, 0.0, 0.0);
                     telemetry.addLine("INIT");
                     telemetry.update();
@@ -75,8 +78,10 @@ public class APosMechBotsAuto extends OpMode {
 
             case TURN:
                 //Turns left while moving away from the wall
-                if (timer.seconds() < 1) {
-                    drive(0.2, 0.0, -0.2);
+                //Real Bot (14 wide * 15 long) --> timer: 2, a: 0.11, b: 0.0, c: -0.2
+                //Test Guy #1 (18 wide * 17 long) --> timer: 2.5, a: 0.09, b: 0.0, c: -0.2
+                if (timer.seconds() < 2.5) {
+                    drive(0.09, 0.0, -0.2);
                     telemetry.addLine("TURN");
                     telemetry.update();
                 }
@@ -88,7 +93,8 @@ public class APosMechBotsAuto extends OpMode {
 
             case BACKUP:
                 //Backs into the parking area
-                if (timer.seconds() < 1) {
+                //BOTH Real Bot and Test Guy #1 --> timer: 7.6, a: -0.2, b: 0.0, c: 0.0
+                if (timer.seconds() < 7.6) {
                     drive(-0.2, 0.0, 0.0);
                     telemetry.addLine("BACKUP");
                     telemetry.update();
