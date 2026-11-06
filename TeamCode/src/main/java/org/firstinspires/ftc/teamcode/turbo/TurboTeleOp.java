@@ -19,15 +19,18 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 public class TurboTeleOp extends LinearOpMode {
 
     /*
-     * Speed is in degrees per second, so we
+     * Speed is in radians per second, so we
      * use the wheel radius to calculate speed
      * from mm/s
      */
     private static final double SPEED = (750) / 52.0;
+    /*
+     * Here we convert from 240 deg/s to rad/s
+     */
+    private static final double TURRET_SPEED = (240.0 / 360) * 2 * Math.PI;
 
     private DcMotorEx frontLeft, frontRight, backLeft, backRight;
-    private DcMotorEx intake, shooter;
-    private Servo gate;
+    private DcMotorEx intake, sGate, shooter, turret;
     private IMU imu;
 
     private void drive() {
@@ -56,14 +59,23 @@ public class TurboTeleOp extends LinearOpMode {
 
     private void runShooter() {
         if(gamepad2.a)
-            gate.setPosition(0.5);
+            sGate.setPower(0.5);
         else
-            gate.setPosition(0);
+            sGate.setPower(0);
 
         if(gamepad2.right_trigger_pressed) {
             shooter.setPower(0.7);
         } else {
             shooter.setPower(0);
+        }
+
+        if(gamepad2.right_stick_x != 0) {
+            turret.setVelocity(
+                    TURRET_SPEED * Math.pow(gamepad2.right_stick_x, 3),
+                    AngleUnit.RADIANS
+            );
+        } else {
+
         }
     }
 
@@ -101,8 +113,9 @@ public class TurboTeleOp extends LinearOpMode {
         backLeft = hardwareMap.get(DcMotorEx.class, "backLeft");
         backRight = hardwareMap.get(DcMotorEx.class, "backRight");
         intake = hardwareMap.get(DcMotorEx.class, "intake");
+        sGate = hardwareMap.get(DcMotorEx.class, "sGate");
         shooter = hardwareMap.get(DcMotorEx.class, "shooter");
-        gate = hardwareMap.get(Servo.class, "gate");
+        turret = hardwareMap.get(DcMotorEx.class, "turret");
         imu = hardwareMap.get(IMU.class, "imu");
         RevHubOrientationOnRobot orientationOnRobot = new RevHubOrientationOnRobot(
                 RevHubOrientationOnRobot.LogoFacingDirection.DOWN,

@@ -53,6 +53,7 @@ public class Driver {
     private double oldRxError = 0;
 
     private Pose currentPose;
+    private Pose currentVelocity;
 
     public Driver(
             DcMotorEx frontLeft, DcMotorEx frontRight,
@@ -136,6 +137,33 @@ public class Driver {
      */
     public Pose getCurrentPose() {
         return currentPose;
+    }
+
+    /**
+     * Get current velocities
+     * This result is only valid if {@link #loop()}
+     * is called every loop
+     * @param angleUnits Angle units for rotational velocity
+     * @param distanceUnits Distance units for
+     *                      planar velocity
+     * @return Current pose
+     */
+    public Pose getCurrentVelocity(AngleUnit angleUnits, DistanceUnit distanceUnits) {
+        return new Pose(
+                distanceUnits.fromMeters(currentVelocity.x),
+                distanceUnits.fromMeters(currentVelocity.y),
+                angleUnits.fromRadians(currentVelocity.heading)
+        );
+    }
+
+    /**
+     * Get current velocities
+     * This result is only valid if {@link #loop()}
+     * is called every loop
+     * @return Current pose
+     */
+    public Pose getCurrentVelocity() {
+        return currentVelocity;
     }
 
     /**
@@ -263,6 +291,8 @@ public class Driver {
                 currentPose.y + g_dy,
                 heading
         );
+
+        currentVelocity = new Pose(g_dx, g_dy, heading - oldHeading);
 
         switch(state) {
             case GET_COMMAND:

@@ -4,8 +4,8 @@ import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.PIDCoefficients;
-import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -22,12 +22,24 @@ public class LimelightDriver {
     public static double MIN_POSITION = -2.6;
     public static PIDCoefficients pid = new PIDCoefficients(0.025, 0, 0.0001);
 
+    /* Instance config variables */
+    public double ENCODER_CPR = 537.7;
+    public double TURRET_GEAR_RATIO = 1 / 2.75;
+    /*
+     * Speed of turret projectile in meters per second
+     * Used for calculating lead angle
+     * Set to 0 to disable
+     */
+
+    public double PROJECTILE_SPEED = 0;
+
     private final Limelight3A ll;
-    private final Servo servo;
+    private final DcMotorEx turret;
     private final Driver driver;
     private final Telemetry telemetry;
     // 0-centered, radians
     private double position = 0;
+    private double oldEncoder = 0;
     private final ElapsedTime loopTimer = new ElapsedTime();
     private final ElapsedTime memTrackTimer = new ElapsedTime();
     private double lastTime = 0;
@@ -42,18 +54,20 @@ public class LimelightDriver {
     private LimelightState state;
 
     public LimelightDriver(
-            Limelight3A limelight, Servo servo,
+            Limelight3A limelight, DcMotorEx turret,
             Driver driver, Telemetry telemetry
     ) {
         this.ll = limelight;
-        this.servo = servo;
+        this.turret = turret;
         this.driver = driver;
         this.telemetry = telemetry;
 
         ll.pipelineSwitch(0);
         ll.start();
 
-        servo.setPosition(0.5);
+        turret.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+        turret.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
+
         loopTimer.reset();
 
         state = LimelightState.LL_MEM;
@@ -68,6 +82,21 @@ public class LimelightDriver {
         return angle;
     }
 
+    double getParallelVelocity(Pose targetPose, Pose velocity) {
+        double magnitude = Math.hypot(targetPose.x, targetPose.y);
+        if(magnitude < 1e-6) return 0;
+
+        double ux = targetPose.x / magnitude;
+        double uy = targetPose.y / magnitude;
+
+        double projection = velocity.x * ux + velocity.y * uy;
+
+        double vx = ux * projection;
+        double vy = uy * projection;
+
+        return vx * -uy + vy * ux;
+    }
+
     Pose oldPose = new Pose(0, 0, 0);
     Pose pose = new Pose(0, 0, 0);
     public void loop() {
@@ -76,6 +105,11 @@ public class LimelightDriver {
         double currentTime = loopTimer.seconds();
         double loopTime = currentTime - lastTime;
         lastTime = currentTime;
+
+        double encoder = turret.getCurrentPosition();
+        position += ((encoder - oldEncoder) / ENCODER_CPR * TURRET_GEAR_RATIO) * 2 * Math.PI;
+        position = normalize(position);
+        oldEncoder = encoder;
 
         switch(state) {
             case LL_IDLE:
@@ -91,8 +125,12 @@ public class LimelightDriver {
                 }
 
                 Pose currentPose = driver.getCurrentPose();
+                Pose currentVelocity = driver.getCurrentVelocity();
+
+                double curVelTargetSpace = getParallelVelocity(pose, currentVelocity);
 
                 double targetAngle = Math.atan2(pose.y, pose.x);
+                if(PROJECTILE_SPEED > 0) targetAngle += Math.asin(curVelTargetSpace / PROJECTILE_SPEED);
                 double currentAngle = normalize(currentPose.heading + position);
                 double memXError = currentAngle - targetAngle;
 
@@ -119,14 +157,8 @@ public class LimelightDriver {
 
                 oldXError = memXError;
 
-                position += xUt_mem;
+                turret.setPower(xUt_mem);
 
-                if(position > MAX_POSITION)
-                    position = MAX_POSITION;
-                else if(position < MIN_POSITION)
-                    position = MIN_POSITION;
-
-                servo.setPosition((position - MIN_POSITION) / (MAX_POSITION - MIN_POSITION));
                 telemetry.addData("Angle error", memXError);
                 telemetry.addData("PID out", xUt_mem);
                 telemetry.addData("PID integral", xIntegral);
@@ -179,14 +211,8 @@ public class LimelightDriver {
 
                 oldXError = xError;
 
-                position += xUt;
+                turret.setPower(xUt);
 
-                if(position > MAX_POSITION)
-                    position = MAX_POSITION;
-                else if(position < MIN_POSITION)
-                    position = MIN_POSITION;
-
-                servo.setPosition((position - MIN_POSITION) / (MAX_POSITION - MIN_POSITION));
                 telemetry.addData("Angle error", xError);
                 telemetry.addData("PID out", xUt);
                 telemetry.addData("PID integral", xIntegral);

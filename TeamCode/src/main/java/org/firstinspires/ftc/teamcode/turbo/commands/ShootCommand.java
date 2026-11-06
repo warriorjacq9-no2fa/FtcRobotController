@@ -3,7 +3,6 @@ package org.firstinspires.ftc.teamcode.turbo.commands;
 import androidx.annotation.NonNull;
 
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.commands.Command;
@@ -18,12 +17,12 @@ public class ShootCommand extends Command {
     }
     private ShootState state;
     private final DcMotorEx shooter;
-    private final Servo gate;
+    private final DcMotorEx sGate;
     private final ElapsedTime shootTimer = new ElapsedTime();
 
-    public ShootCommand(DcMotorEx shooter, Servo gate) {
+    public ShootCommand(DcMotorEx shooter, DcMotorEx sGate) {
         this.shooter = shooter;
-        this.gate = gate;
+        this.sGate = sGate;
         this.state = ShootState.SPIN;
     }
     @Override
@@ -35,9 +34,9 @@ public class ShootCommand extends Command {
                 state = ShootState.SHOOTING;
                 break;
             case SHOOTING:
-                if(shootTimer.seconds() > 1.5) {
-                    gate.setPosition(0.5);
-                } else if(shootTimer.seconds() > 2) {
+                if(shootTimer.seconds() > 1) {
+                    sGate.setPower(0.5);
+                } else if(shootTimer.seconds() > 1.5) {
                     state = ShootState.DONE;
                 }
                 break;
