@@ -11,12 +11,13 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Config
 public class LimelightDriver {
     /* Config variables */
-    public static int FIDUCIAL_ID_0 = 30;
     /* Min and max position in radians, positive = CCW */
     public static double MAX_POSITION = 2.6;
     public static double MIN_POSITION = -2.6;
@@ -39,11 +40,13 @@ public class LimelightDriver {
     private final Telemetry telemetry;
     // 0-centered, radians
     private double position = 0;
+    private double targetPosition = 0;
     private double oldEncoder = 0;
     private final ElapsedTime loopTimer = new ElapsedTime();
     private final ElapsedTime memTrackTimer = new ElapsedTime();
     private double lastTime = 0;
     private double xIntegral = 0, xDerivative = 0, oldXError = 0;
+    private ArrayList<Integer> fiducialSet = new ArrayList<>(Arrays.asList(30, 31, 32, 33));
 
     private enum LimelightState {
         LL_IDLE,
@@ -101,8 +104,22 @@ public class LimelightDriver {
         return velocity.y * ux - velocity.x * uy;
     }
 
-    Pose oldTargetPose = new Pose(0, 0, 0);
     Pose targetPose = new Pose(0, 0, 0);
+
+    public void enterManualMode(double targetPosition) {
+        this.targetPosition = targetPosition;
+        state = LimelightState.LL_IDLE;
+    }
+
+    public void exitManualMode() {
+        if(state == LimelightState.LL_IDLE)
+            state = LimelightState.LL_MEM;
+    }
+
+    public void setFiducialSet(ArrayList<Integer> set) {
+        fiducialSet = set;
+    }
+
     public void loop() {
         LLResult res = ll.getLatestResult();
 
@@ -115,18 +132,14 @@ public class LimelightDriver {
         position = normalize(position);
         oldEncoder = encoder;
 
-        double targetPosition = position;
-
         switch(state) {
             case LL_IDLE:
-                if(res != null && res.isValid()) {
-                    state = LimelightState.LL_TRACK; // We got a lock, start tracking
-                }
+                // Just do nothing here
                 break;
 
             case LL_MEM:
                 if(res != null && res.isValid()) {
-                    state = LimelightState.LL_TRACK;
+                    state = LimelightState.LL_TRACK; // We got a lock, start tracking
                     break;
                 }
 
@@ -153,8 +166,6 @@ public class LimelightDriver {
                         targetPose.y - currentVelocity.y,
                         0
                 );
-
-                oldTargetPose = currentPose;
                 break;
 
             case LL_TRACK:
@@ -171,7 +182,7 @@ public class LimelightDriver {
                 boolean found = false;
 
                 for(LLResultTypes.FiducialResult fid: fidRes) {
-                    if(fid.getFiducialId() == FIDUCIAL_ID_0) {
+                    if(fiducialSet.contains(fid.getFiducialId())) {
                         found = true;
                         Position pos = fid.getTargetPoseCameraSpace().getPosition();
                         targetPose = new Pose(pos.x, pos.y, 0);

@@ -1,13 +1,18 @@
 package org.firstinspires.ftc.teamcode.turbo;
 
+import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.IMU;
-import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.teamcode.LimelightDriver;
+import org.firstinspires.ftc.teamcode.Driver;
+
+import java.util.ArrayList;
+import java.util.Arrays;
 
 /*
  * The FTC controller has two types of operation
@@ -24,13 +29,17 @@ public class TurboTeleOp extends LinearOpMode {
      * from mm/s
      */
     private static final double SPEED = (750) / 52.0;
-    /*
-     * Here we convert from 240 deg/s to rad/s
-     */
-    private static final double TURRET_SPEED = (240.0 / 360) * 2 * Math.PI;
+    private static final ArrayList<Integer> FIDUCIAL_SET_0 = new ArrayList<>(Arrays.asList(30, 31, 32, 33));
+    private static final ArrayList<Integer> FIDUCIAL_SET_1 = new ArrayList<>(Arrays.asList(34, 35, 36, 37));
+    private static final ArrayList<Integer> FIDUCIAL_SET_2 = new ArrayList<>(Arrays.asList(38, 39, 40, 41));
+    private static final ArrayList<Integer> FIDUCIAL_SET_3 = new ArrayList<>(Arrays.asList(42, 43, 44, 45));
+
+    private LimelightDriver limelightDriver;
 
     private DcMotorEx frontLeft, frontRight, backLeft, backRight;
-    private DcMotorEx intake, sGate, shooter, turret;
+    private DcMotorEx intake;
+    private DcMotorEx sGate;
+    private DcMotorEx shooter;
     private IMU imu;
 
     private void drive() {
@@ -57,26 +66,40 @@ public class TurboTeleOp extends LinearOpMode {
         telemetry.addData("Heading", heading);
     }
 
+    double targetPosition = 0;
+
     private void runShooter() {
-        if(gamepad2.a)
+        if(gamepad2.right_bumper)
             sGate.setPower(0.5);
         else
             sGate.setPower(0);
 
         if(gamepad2.right_trigger_pressed) {
-            shooter.setPower(0.7);
+            /*
+             * This just adds a small variance to
+             * the shooter control. Using x^1/3
+             * on the trigger makes it more
+             * sensitive close to 0 (or in our
+             * case 0.5 since we shift the graph
+             * using x - 0.5)
+             */
+
+            shooter.setPower(0.7 + 0.075 * Math.pow(gamepad2.right_trigger - 0.5, 1.0 / 3));
         } else {
             shooter.setPower(0);
         }
 
-        if(gamepad2.right_stick_x != 0) {
-            turret.setVelocity(
-                    TURRET_SPEED * Math.pow(gamepad2.right_stick_x, 3),
-                    AngleUnit.RADIANS
-            );
+        if(gamepad2.left_trigger_pressed) {
+            targetPosition += Math.pow(gamepad2.right_stick_x, 3);
+            limelightDriver.enterManualMode(targetPosition);
         } else {
-
+            limelightDriver.exitManualMode();
         }
+
+        if(gamepad2.aWasPressed()) limelightDriver.setFiducialSet(FIDUCIAL_SET_0);
+        else if(gamepad2.bWasPressed()) limelightDriver.setFiducialSet(FIDUCIAL_SET_1);
+        else if(gamepad2.xWasPressed()) limelightDriver.setFiducialSet(FIDUCIAL_SET_2);
+        else if(gamepad2.yWasPressed()) limelightDriver.setFiducialSet(FIDUCIAL_SET_3);
     }
 
     private void runIntake() {
@@ -115,8 +138,11 @@ public class TurboTeleOp extends LinearOpMode {
         intake = hardwareMap.get(DcMotorEx.class, "intake");
         sGate = hardwareMap.get(DcMotorEx.class, "sGate");
         shooter = hardwareMap.get(DcMotorEx.class, "shooter");
-        turret = hardwareMap.get(DcMotorEx.class, "turret");
+        DcMotorEx turret = hardwareMap.get(DcMotorEx.class, "turret");
         imu = hardwareMap.get(IMU.class, "imu");
+
+        Limelight3A ll = hardwareMap.get(Limelight3A.class, "limelight");
+
         RevHubOrientationOnRobot orientationOnRobot = new RevHubOrientationOnRobot(
                 RevHubOrientationOnRobot.LogoFacingDirection.DOWN,
                 RevHubOrientationOnRobot.UsbFacingDirection.RIGHT
@@ -125,23 +151,11 @@ public class TurboTeleOp extends LinearOpMode {
 
         intake.setDirection(DcMotorEx.Direction.REVERSE);
 
-        frontLeft.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
-        frontRight.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
-        backLeft.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
-        backRight.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
-
         frontRight.setDirection(DcMotorEx.Direction.REVERSE);
         backRight.setDirection(DcMotorEx.Direction.REVERSE);
 
-        frontLeft.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
-        frontRight.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
-        backLeft.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
-        backRight.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
-
-        frontLeft.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
-        frontRight.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
-        backLeft.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
-        backRight.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+        Driver driver = new Driver(frontLeft, frontRight, backLeft, backRight, imu, telemetry);
+        limelightDriver = new LimelightDriver(ll, turret, driver, telemetry);
 
         waitForStart();
 
@@ -157,6 +171,8 @@ public class TurboTeleOp extends LinearOpMode {
             } else {
                 drive();
             }
+            driver.loop();
+            limelightDriver.loop();
             telemetry.update();
         }
     }
