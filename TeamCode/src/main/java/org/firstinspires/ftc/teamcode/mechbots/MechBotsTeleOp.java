@@ -62,19 +62,28 @@ public class MechBotsTeleOp extends LinearOpMode {
     }
 
     private void runShooter() {
-        if(gamepad2.a)
+        if(gamepad2.left_bumper)
             sGate.setPower(1);
         else
             sGate.setPower(0);
 
-        if(gamepad2.right_trigger_pressed) {
-            shooter.setPower(0.7);
+        if(gamepad2.left_trigger_pressed) {
+            /*
+             * This just adds a small variance to
+             * the shooter control. Using x^1/3
+             * on the trigger makes it more
+             * sensitive close to 0 (or in our
+             * case 0.5 since we shift the graph
+             * using x - 0.5)
+             */
+
+            shooter.setPower(0.7 + 0.075 * Math.pow(gamepad2.left_trigger - 0.5, 1.0 / 3));
         } else {
             shooter.setPower(0);
         }
     }
     private void driveGlobal() {
-        /* Use x^3 for better sensitivity in the middle range of the joystick */
+        /* Use x^3 for less sensitivity in the middle range of the joystick */
         double x = -Math.pow(gamepad1.left_stick_y, 3);
         double y = Math.pow(gamepad1.left_stick_x, 3);
         double rx = SPEED * Math.pow(gamepad1.right_stick_x, 3);
