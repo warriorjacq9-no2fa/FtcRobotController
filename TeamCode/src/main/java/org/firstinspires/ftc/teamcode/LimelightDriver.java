@@ -18,6 +18,7 @@ import java.util.List;
 @Config
 public class LimelightDriver {
     /* Config variables */
+    public static boolean DEBUG = true;
     /* Min and max position in radians, positive = CCW */
     public static double MAX_POSITION = 2.6;
     public static double MIN_POSITION = -2.6;
@@ -46,7 +47,21 @@ public class LimelightDriver {
     private final ElapsedTime memTrackTimer = new ElapsedTime();
     private double lastTime = 0;
     private double xIntegral = 0, xDerivative = 0, oldXError = 0;
-    private ArrayList<Integer> fiducialSet = new ArrayList<>(Arrays.asList(30, 31, 32, 33));
+
+    public enum FiducialSets {
+        RED_FAR,
+        RED_CLOSE,
+        BLUE_CLOSE,
+        BLUE_FAR
+    }
+
+    private ArrayList<Integer>[] fiducialSets = new ArrayList[] {
+            new ArrayList<>(Arrays.asList(30, 31, 32, 33)),
+            new ArrayList<>(Arrays.asList(34, 35, 36, 37)),
+            new ArrayList<>(Arrays.asList(38, 39, 40, 41)),
+            new ArrayList<>(Arrays.asList(42, 43, 44, 45)),
+    };
+    private FiducialSets currentFiducialSet;
 
     private enum LimelightState {
         LL_IDLE,
@@ -116,8 +131,8 @@ public class LimelightDriver {
             state = LimelightState.LL_MEM;
     }
 
-    public void setFiducialSet(ArrayList<Integer> set) {
-        fiducialSet = set;
+    public void setFiducialSet(FiducialSets set) {
+        currentFiducialSet = set;
     }
 
     public void loop() {
@@ -155,10 +170,12 @@ public class LimelightDriver {
 
                 targetPosition = normalize(position - (currentAngle - targetAngle));
 
-                telemetry.addData("Memory track target X", targetPose.x);
-                telemetry.addData("Memory track target Y", targetPose.y);
-                telemetry.addData("Memory track target angle", targetAngle);
-                telemetry.addData("Memory track current angle", currentAngle);
+                if(DEBUG) {
+                    telemetry.addData("Memory track target X", targetPose.x);
+                    telemetry.addData("Memory track target Y", targetPose.y);
+                    telemetry.addData("Memory track target angle", targetAngle);
+                    telemetry.addData("Memory track current angle", currentAngle);
+                }
 
                 // Adjust stored target position for movement
                 targetPose = new Pose(
@@ -182,7 +199,7 @@ public class LimelightDriver {
                 boolean found = false;
 
                 for(LLResultTypes.FiducialResult fid: fidRes) {
-                    if(fiducialSet.contains(fid.getFiducialId())) {
+                    if(fiducialSets[currentFiducialSet.ordinal()].contains(fid.getFiducialId())) {
                         found = true;
                         Position pos = fid.getTargetPoseCameraSpace().getPosition();
                         targetPose = new Pose(pos.x, pos.y, 0);
@@ -201,7 +218,6 @@ public class LimelightDriver {
                 }
 
                 memTrackTimer.reset();
-                telemetry.addLine("Tracking");
                 break;
         }
 
@@ -224,11 +240,15 @@ public class LimelightDriver {
 
         turret.setPower(xUt);
 
-        telemetry.addData("Angle error", xError);
-        telemetry.addData("PID out", xUt);
-        telemetry.addData("PID integral", xIntegral);
-        telemetry.addData("PID derivative", xDerivative);
-        telemetry.addData("Position", position);
-        telemetry.addData("Loop time", loopTime);
+        if(DEBUG) {
+            telemetry.addData("Angle error", xError);
+            telemetry.addData("PID out", xUt);
+            telemetry.addData("PID integral", xIntegral);
+            telemetry.addData("PID derivative", xDerivative);
+            telemetry.addData("Position", position);
+            telemetry.addData("Loop time", loopTime);
+        }
+        telemetry.addData("Fiducial set", currentFiducialSet);
+        telemetry.addData("State", state);
     }
 }

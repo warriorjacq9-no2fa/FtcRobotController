@@ -29,10 +29,6 @@ public class TurboTeleOp extends LinearOpMode {
      * from mm/s
      */
     private static final double SPEED = (750) / 52.0;
-    private static final ArrayList<Integer> FIDUCIAL_SET_0 = new ArrayList<>(Arrays.asList(30, 31, 32, 33));
-    private static final ArrayList<Integer> FIDUCIAL_SET_1 = new ArrayList<>(Arrays.asList(34, 35, 36, 37));
-    private static final ArrayList<Integer> FIDUCIAL_SET_2 = new ArrayList<>(Arrays.asList(38, 39, 40, 41));
-    private static final ArrayList<Integer> FIDUCIAL_SET_3 = new ArrayList<>(Arrays.asList(42, 43, 44, 45));
 
     private LimelightDriver limelightDriver;
 
@@ -96,10 +92,10 @@ public class TurboTeleOp extends LinearOpMode {
             limelightDriver.exitManualMode();
         }
 
-        if(gamepad2.aWasPressed()) limelightDriver.setFiducialSet(FIDUCIAL_SET_0);
-        else if(gamepad2.bWasPressed()) limelightDriver.setFiducialSet(FIDUCIAL_SET_1);
-        else if(gamepad2.xWasPressed()) limelightDriver.setFiducialSet(FIDUCIAL_SET_2);
-        else if(gamepad2.yWasPressed()) limelightDriver.setFiducialSet(FIDUCIAL_SET_3);
+        if(gamepad2.aWasPressed()) limelightDriver.setFiducialSet(LimelightDriver.FiducialSets.BLUE_CLOSE);
+        else if(gamepad2.bWasPressed()) limelightDriver.setFiducialSet(LimelightDriver.FiducialSets.BLUE_FAR);
+        else if(gamepad2.xWasPressed()) limelightDriver.setFiducialSet(LimelightDriver.FiducialSets.RED_CLOSE);
+        else if(gamepad2.yWasPressed()) limelightDriver.setFiducialSet(LimelightDriver.FiducialSets.RED_FAR);
     }
 
     private void runIntake() {
