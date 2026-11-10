@@ -23,9 +23,9 @@ public class KrowTeleop extends OpMode {
             /* v-o */ BackRight = hardwareMap.get(DcMotorEx.class,"backRight");
         /* Wheel Variable = Irl Wheel from DcMotot.class */
 
-        /* o-^ */ FrontLeft.setDirection(DcMotorSimple.Direction.FORWARD);  /* Set Left Normal Direction */
+        /* o-^ */ FrontLeft.setDirection(DcMotorSimple.Direction.REVERSE);  /* Set Left Normal Direction */
         /* o-v */ BackLeft.setDirection(DcMotorSimple.Direction.FORWARD);   /* Set Left Normal Direction */
-            /* ^-o */ FrontRight.setDirection(DcMotorSimple.Direction.REVERSE); /* Set Right Reversed */
+            /* ^-o */ FrontRight.setDirection(DcMotorSimple.Direction.FORWARD); /* Set Right Reversed */
             /* v-o */ BackRight.setDirection(DcMotorSimple.Direction.REVERSE);  /* Set Right Reversed */
         /* Set Right Wheels to Reverse, Set Left Wheels to normal direction (Forward) */
 
@@ -39,16 +39,18 @@ public class KrowTeleop extends OpMode {
     String BL = "x";
     String FR = "x";
     String BR = "x";
-    public String Display(double P){
+
+    public String Display (double P) {
         if (P < 0) {
             return "^";
-        } if (P > 0) {
+        }
+        if (P > 0) {
             return "v";
         } else {
             return "o";
         }
     }
-    private void drive() {
+        private void drive() {
         /* (^\v) () */  double forward = -gamepad1.left_stick_y;  /* Set Y-axis of Left Stick to Forward */
         /* () (<\>) */  double strafe = gamepad1.left_stick_x;    /* Set X-axis of Left Stick to Strafe */
         /* () (<\>) */  double turn = gamepad1.right_stick_x;     /* Set Y-axis of Right Stick to Turn */
@@ -68,17 +70,14 @@ public class KrowTeleop extends OpMode {
         String BL = Display(BLPower);
         String FR = Display(FRPower);
         String BR = Display(BRPower);
+        String Wheels = FL + FR + BL + BR;
         if (!(PreFL + PreBL + PreFR + PreBR).equals(FL + BL + FR + BR)){
-            telemetry.addLine(FL + FR);
-            telemetry.addLine(BL + BR);
-            if ( (FL + FR + BL + BR).equals("^^^^") ) {
-            }
+           /*  TeleopDisplay.convert( Wheels, FL , FR , BL , BR ); */
+            telemetry.addLine(TeleopDisplay.convert( Wheels, FL , FR , BL , BR ));
             telemetry.update();
         }
-
     }
-
-    public void loop(){
+        public void loop(){
         drive();
     }
 }
