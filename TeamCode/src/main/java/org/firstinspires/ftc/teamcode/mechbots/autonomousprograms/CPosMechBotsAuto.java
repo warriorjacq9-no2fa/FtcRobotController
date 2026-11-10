@@ -5,6 +5,7 @@ import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 //Talk to Lily if you want to know where "position C" is on the field. They made it up. Eventually they'll get to telling everyone.
@@ -37,11 +38,11 @@ public class CPosMechBotsAuto extends OpMode {
         backRight = hardwareMap.get(DcMotorEx.class, "backRight");
         backLeft = hardwareMap.get(DcMotorEx.class, "backLeft");
 
-        //!!!! Not yet certain what these will need to be set to. Figure it out and uncomment before testing!!!
-        //frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
-        //backRight.setDirection(DcMotorSimple.Direction.REVERSE);
-        //frontLeft.setDirection(DcMotorSimple.Direction.FORWARD);
-        //backLeft.setDirection(DcMotorSimple.Direction.FORWARD);
+        //!!!! Not yet certain what these will need to be set to for Real Bot, but for Test Guy #1 it's FR: R, BR: F, FL: F, BL: R
+        frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
+        backRight.setDirection(DcMotorSimple.Direction.FORWARD);
+        frontLeft.setDirection(DcMotorSimple.Direction.FORWARD);
+        backLeft.setDirection(DcMotorSimple.Direction.REVERSE);
 
         frontRight.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
         frontLeft.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
@@ -73,7 +74,8 @@ public class CPosMechBotsAuto extends OpMode {
 
             case STRAFE:
                 //Strafes left into the parking space
-                if (timer.seconds() < 1) {
+                //Should be same for Test and Real, timer > 2 and b: -0.2
+                if (timer.seconds() < 2) {
                     drive(0.0, -0.2, 0.0);
                     telemetry.addLine("STRAFE");
                     telemetry.update();

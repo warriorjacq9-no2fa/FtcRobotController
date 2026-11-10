@@ -78,9 +78,9 @@ public class APosMechBotsAuto extends OpMode {
 
             case TURN:
                 //Turns left while moving away from the wall
-                //Real Bot (14 wide * 15 long) --> timer: 2, a: 0.11, b: 0.0, c: -0.2
-                //Test Guy #1 (18 wide * 17 long) --> timer: 2.5, a: 0.09, b: 0.0, c: -0.2
-                if (timer.seconds() < 2.5) {
+                //Real Bot (14 wide * 15 long) --> timer: 2.2, a: 0.11, b: 0.0, c: -0.2
+                //Test Guy #1 (18 wide * 17 long) --> timer: 2.7, a: 0.09, b: 0.0, c: -0.2
+                if (timer.seconds() < 2.7) {
                     drive(0.09, 0.0, -0.2);
                     telemetry.addLine("TURN");
                     telemetry.update();
@@ -93,8 +93,8 @@ public class APosMechBotsAuto extends OpMode {
 
             case BACKUP:
                 //Backs into the parking area
-                //BOTH Real Bot and Test Guy #1 --> timer: 7.6, a: -0.2, b: 0.0, c: 0.0
-                if (timer.seconds() < 7.6) {
+                //BOTH Real Bot and Test Guy #1 --> timer: 9, a: -0.2, b: 0.0, c: 0.0
+                if (timer.seconds() < 9) {
                     drive(-0.2, 0.0, 0.0);
                     telemetry.addLine("BACKUP");
                     telemetry.update();

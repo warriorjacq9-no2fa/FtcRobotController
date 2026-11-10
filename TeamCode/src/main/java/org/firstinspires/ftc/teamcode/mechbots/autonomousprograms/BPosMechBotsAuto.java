@@ -5,6 +5,7 @@ import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 //Talk to Lily if you want to know where "position B" is on the field. They made it up. Eventually they'll get to telling everyone.
@@ -38,11 +39,11 @@ public class BPosMechBotsAuto extends OpMode {
         backRight = hardwareMap.get(DcMotorEx.class, "backRight");
         backLeft = hardwareMap.get(DcMotorEx.class, "backLeft");
 
-        //!!!! Not yet certain what these will need to be set to. Figure it out and uncomment before testing!!!
-        //frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
-        //backRight.setDirection(DcMotorSimple.Direction.REVERSE);
-        //frontLeft.setDirection(DcMotorSimple.Direction.FORWARD);
-        //backLeft.setDirection(DcMotorSimple.Direction.FORWARD);
+        //!!!! Not yet certain what these will need to be set to for Real Bot, but for Test Guy #1 it's FR: R, BR: F, FL: F, BL: R
+        frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
+        backRight.setDirection(DcMotorSimple.Direction.FORWARD);
+        frontLeft.setDirection(DcMotorSimple.Direction.FORWARD);
+        backLeft.setDirection(DcMotorSimple.Direction.REVERSE);
 
         frontRight.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
         frontLeft.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
@@ -75,6 +76,7 @@ public class BPosMechBotsAuto extends OpMode {
 
             case FORWARD:
                 //Moves forward into the parking space
+                //Both Test and Real use timer < 1 and a: 0.2
                 if (timer.seconds() < 1) {
                     drive(0.2, 0.0, 0.0);
                     telemetry.addLine("FORWARD");
@@ -88,7 +90,9 @@ public class BPosMechBotsAuto extends OpMode {
 
             case TURN:
                 //Turns to face away from the wall
-                if (timer.seconds() < 1) {
+                //Real Bot (14 wide * 15 long) --> timer: 2.2, a: 0.0, b: 0.0, c: -0.2
+                //Test Guy #1 (18 wide * 17 long) --> timer: 2.7, a: 0.0, b: 0.0, c: -0.2
+                if (timer.seconds() < 2.5) {
                     drive(0.0, 0.0, -0.2);
                     telemetry.addLine("TURN");
                     telemetry.update();

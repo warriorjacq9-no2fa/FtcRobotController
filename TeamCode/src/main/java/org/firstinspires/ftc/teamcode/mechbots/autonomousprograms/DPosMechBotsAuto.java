@@ -5,11 +5,12 @@ import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 //Talk to Lily if you want to know where "position D" is on the field. They made it up. Eventually they'll get to telling everyone.
 
-@Autonomous(name="CPosMechBotsAuto")
+@Autonomous(name="DPosMechBotsAuto")
 public class DPosMechBotsAuto extends OpMode {
 
     //speed = ?
@@ -24,8 +25,11 @@ public class DPosMechBotsAuto extends OpMode {
     //Should this be a state machine? I don't know. Is it going to be a state machine? Yeah, unless someone tells me no.
     private enum AutoState {
         INIT,
-        DIAGONAL,
+        FORWARD,
+        STRAFE,
+        FORWARD2,
         TURN,
+        BACKUP,
         COMPLETE
     }
     private AutoState state = AutoState.INIT;
@@ -38,11 +42,11 @@ public class DPosMechBotsAuto extends OpMode {
         backRight = hardwareMap.get(DcMotorEx.class, "backRight");
         backLeft = hardwareMap.get(DcMotorEx.class, "backLeft");
 
-        //!!!! Not yet certain what these will need to be set to. Figure it out and uncomment before testing!!!
-        //frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
-        //backRight.setDirection(DcMotorSimple.Direction.REVERSE);
-        //frontLeft.setDirection(DcMotorSimple.Direction.FORWARD);
-        //backLeft.setDirection(DcMotorSimple.Direction.FORWARD);
+        //!!!! Not yet certain what these will need to be set to for Real Bot, but for Test Guy #1 it's FR: R, BR: F, FL: F, BL: R
+        frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
+        backRight.setDirection(DcMotorSimple.Direction.FORWARD);
+        frontLeft.setDirection(DcMotorSimple.Direction.FORWARD);
+        backLeft.setDirection(DcMotorSimple.Direction.REVERSE);
 
         frontRight.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
         frontLeft.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
@@ -68,15 +72,42 @@ public class DPosMechBotsAuto extends OpMode {
                     telemetry.update();
                 }
                 else {
-                    state = AutoState.DIAGONAL;
+                    state = AutoState.FORWARD;
                 }
                 break;
 
-            case DIAGONAL:
-                //Moves forward and slightly diagonal (left) into the parking space
-                if (timer.seconds() < 1) {
-                    drive(0.2, -0.1, 0.0);
-                    telemetry.addLine("DIAGONAL");
+            case FORWARD:
+                //Moves forward away from the wall
+                //Should be same for Test and Real
+                if (timer.seconds() < 2) {
+                    drive(0.2, 0.0, 0.0);
+                    telemetry.addLine("FORWARD");
+                    telemetry.update();
+                }
+                else {
+                    state = AutoState.STRAFE;
+                    timer.reset();
+                }
+                break;
+
+            case STRAFE:
+                //Strafes Left
+                if (timer.seconds() < 4) {
+                    drive(0.0, -0.2, 0.0);
+                    telemetry.addLine("STRAFE");
+                    telemetry.update();
+                }
+                else {
+                    state = AutoState.FORWARD2;
+                    timer.reset();
+                }
+                break;
+
+            case FORWARD2:
+                //Moves forward closer to parking zone
+                if (timer.seconds() < 8) {
+                    drive(0.2, 0.0, 0.0);
+                    telemetry.addLine("FORWARD2");
                     telemetry.update();
                 }
                 else {
@@ -87,9 +118,24 @@ public class DPosMechBotsAuto extends OpMode {
 
             case TURN:
                 //Turns to face away from the wall
-                if (timer.seconds() < 1) {
+                //Test uses timer < 2.7 , a: 0.09, c: 0.2
+                //Real uses timer <  2.2 , a: 0.11, c: 0.2
+                if (timer.seconds() < 2.7) {
                     drive(0.0, 0.0, 0.2);
                     telemetry.addLine("TURN");
+                    telemetry.update();
+                }
+                else {
+                    state = AutoState.BACKUP;
+                    timer.reset();
+                }
+                break;
+
+            case BACKUP:
+                //Moves forward away from the wall
+                if (timer.seconds() < 3) {
+                    drive(-0.2, 0.0, 0.0);
+                    telemetry.addLine("BACKUP");
                     telemetry.update();
                 }
                 else {
@@ -97,6 +143,7 @@ public class DPosMechBotsAuto extends OpMode {
                     timer.reset();
                 }
                 break;
+
 
             case COMPLETE:
                 drive(0.0, 0.0, 0.0);
