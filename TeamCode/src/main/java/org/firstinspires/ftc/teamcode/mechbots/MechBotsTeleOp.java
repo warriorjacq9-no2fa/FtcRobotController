@@ -18,11 +18,12 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 public class MechBotsTeleOp extends LinearOpMode {
 
     /*
-     * Speed is in degrees per second, so we
+     * Speed is in radians per second, so we
      * use the wheel radius to calculate speed
      * from mm/s
      */
     private static final double SPEED = (500) / 52.0;
+    private static final double SHOOTER_SPEED = 500;
 
     private DcMotorEx frontLeft, frontRight, backLeft, backRight;
     private DcMotorEx intake, sGate, shooter;
@@ -58,7 +59,6 @@ public class MechBotsTeleOp extends LinearOpMode {
         } else {
             intake.setPower(1);
         }
-
     }
 
     private void runShooter() {
@@ -77,7 +77,10 @@ public class MechBotsTeleOp extends LinearOpMode {
              * using x - 0.5)
              */
 
-            shooter.setPower(0.7 + 0.075 * Math.pow(gamepad2.left_trigger - 0.5, 1.0 / 3));
+            shooter.setVelocity(
+                    SHOOTER_SPEED + 50 * Math.pow(gamepad2.left_trigger - 0.5, 1.0 / 3),
+                    AngleUnit.RADIANS
+            );
         } else {
             shooter.setPower(0);
         }

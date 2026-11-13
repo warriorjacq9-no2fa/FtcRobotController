@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.legacyturbo;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -19,15 +20,16 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 public class LegacyTurboTeleOp extends LinearOpMode {
 
     /*
-     * Speed is in degrees per second, so we
+     * Speed is in radians per second, so we
      * use the wheel radius to calculate speed
      * from mm/s
      */
     private static final double SPEED = (750) / 52.0;
+    private static final double SHOOTER_SPEED = 320;
 
     private DcMotorEx frontLeft, frontRight, backLeft, backRight;
     private DcMotorEx intake, shooter;
-    private Servo gate;
+    private CRServo gate;
     private IMU imu;
 
     private void drive() {
@@ -56,9 +58,9 @@ public class LegacyTurboTeleOp extends LinearOpMode {
 
     private void runShooter() {
         if(gamepad2.left_bumper)
-            gate.setPosition(0.5);
+            gate.setPower(1);
         else
-            gate.setPosition(0);
+            gate.setPower(0);
 
         if(gamepad2.left_trigger_pressed) {
             /*
@@ -70,7 +72,10 @@ public class LegacyTurboTeleOp extends LinearOpMode {
              * using x - 0.5)
              */
 
-            shooter.setPower(0.7 + 0.075 * Math.pow(gamepad2.left_trigger - 0.5, 1.0 / 3));
+            shooter.setVelocity(
+                    SHOOTER_SPEED + 50 * Math.pow(gamepad2.left_trigger - 0.5, 1.0 / 3),
+                    AngleUnit.RADIANS
+            );
         } else {
             shooter.setPower(0);
         }
@@ -111,7 +116,7 @@ public class LegacyTurboTeleOp extends LinearOpMode {
         backRight = hardwareMap.get(DcMotorEx.class, "backRight");
         intake = hardwareMap.get(DcMotorEx.class, "intake");
         shooter = hardwareMap.get(DcMotorEx.class, "shooter");
-        gate = hardwareMap.get(Servo.class, "gate");
+        gate = hardwareMap.get(CRServo.class, "gate");
         imu = hardwareMap.get(IMU.class, "imu");
         RevHubOrientationOnRobot orientationOnRobot = new RevHubOrientationOnRobot(
                 RevHubOrientationOnRobot.LogoFacingDirection.DOWN,

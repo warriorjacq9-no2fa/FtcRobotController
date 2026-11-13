@@ -41,7 +41,7 @@ public class LimelightTest extends OpMode {
 
         llDriver = new LimelightDriver(
                 limelight,
-                hardwareMap.get(Servo.class, "servo"),
+                hardwareMap.get(DcMotorEx.class, "servo"),
                 driver,
                 telemetry
         );

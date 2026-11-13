@@ -29,6 +29,7 @@ public class TurboTeleOp extends LinearOpMode {
      * from mm/s
      */
     private static final double SPEED = (750) / 52.0;
+    private static final double SHOOTER_SPEED = 500;
 
     private LimelightDriver limelightDriver;
 
@@ -80,7 +81,10 @@ public class TurboTeleOp extends LinearOpMode {
              * using x - 0.5)
              */
 
-            shooter.setPower(0.7 + 0.075 * Math.pow(gamepad2.left_trigger - 0.5, 1.0 / 3));
+            shooter.setVelocity(
+                    SHOOTER_SPEED + 50 * Math.pow(gamepad2.left_trigger - 0.5, 1.0 / 3),
+                    AngleUnit.RADIANS
+            );
         } else {
             shooter.setPower(0);
         }
