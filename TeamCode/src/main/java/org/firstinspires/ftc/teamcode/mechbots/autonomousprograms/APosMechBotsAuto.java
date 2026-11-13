@@ -29,7 +29,14 @@ public class APosMechBotsAuto extends OpMode {
         BACKUP,
         COMPLETE
     }
+
+    private enum RobotType {
+        TESTGUY,
+        MAINBOT
+    }
     private AutoState state = AutoState.INIT;
+
+    private RobotType robotType = RobotType.MAINBOT;
 
     public void init() {
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
@@ -41,22 +48,34 @@ public class APosMechBotsAuto extends OpMode {
 
         //!!!! Not yet certain what these will need to be set to for Real Bot, but for Test Guy #1 it's FR: R, BR: F, FL: F, BL: R
         frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
-        backRight.setDirection(DcMotorSimple.Direction.FORWARD);
+        backRight.setDirection(DcMotorSimple.Direction.REVERSE);
         frontLeft.setDirection(DcMotorSimple.Direction.FORWARD);
-        backLeft.setDirection(DcMotorSimple.Direction.REVERSE);
+        backLeft.setDirection(DcMotorSimple.Direction.FORWARD);
 
         frontRight.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
         frontLeft.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
         backRight.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
         backLeft.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+        }
+
+    @Override
+    public void init_loop() {
+        if (gamepad1.b) {
+            robotType = RobotType.TESTGUY;
+        }
+        else if (gamepad1.a) {
+            robotType = RobotType.MAINBOT;
+        }
+        telemetry.addData("Selected Robot Type: ", robotType);
+        telemetry.addLine("A (x) for MAINBOT, B (circle) for TESTGUY");
     }
 
     //Drive function. 'a' is for forward, 'b' is for strafe, 'c' is for turn. Positive goes right, negative goes left (I think).
-    public void drive(double a, double b, double c) {
-        frontLeft.setPower(a+b+c);
-        frontRight.setPower(a+b-c);
-        backLeft.setPower(a-b+c);
-        backRight.setPower(a-b-c);
+    public void drive(double forward, double strafe, double turn) {
+        frontLeft.setPower(forward+strafe+turn);
+        frontRight.setPower(forward-strafe-turn);
+        backLeft.setPower(forward-strafe+turn);
+        backRight.setPower(forward+strafe-turn);
     }
 
     //The length of time it is in each state needs to be figured out through testing to make it work as intended!!!
@@ -77,12 +96,14 @@ public class APosMechBotsAuto extends OpMode {
                 break;
 
             case TURN:
+                double turnTime = (robotType == RobotType.MAINBOT)? 2.2 : 2.7;
+                double driveVelocity = (robotType == RobotType.MAINBOT)? 0.11 : 0.09;
                 //Turns left while moving away from the wall
                 //Real Bot (14 wide * 15 long) --> timer: 2.2, a: 0.11, b: 0.0, c: -0.2
                 //Test Guy #1 (18 wide * 17 long) --> timer: 2.7, a: 0.09, b: 0.0, c: -0.2
-                if (timer.seconds() < 2.7) {
-                    drive(0.09, 0.0, -0.2);
-                    telemetry.addLine("TURN");
+                if (timer.seconds() < turnTime) {
+                    drive(driveVelocity, 0.0, -0.2);
+                    telemetry.addLine("TURN (turning by " + driveVelocity +" for " +turnTime+" seconds)");
                     telemetry.update();
                 }
                 else {

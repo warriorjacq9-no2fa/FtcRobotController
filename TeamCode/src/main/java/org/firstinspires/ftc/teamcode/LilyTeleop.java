@@ -40,9 +40,9 @@ public class LilyTeleop extends OpMode {
         double turn = gamepad1.right_stick_x;
 
         frontLeft.setPower(forward+strafe+turn);
-        frontRight.setPower(forward+strafe-turn);
+        frontRight.setPower(forward-strafe-turn);
         backLeft.setPower(forward-strafe+turn);
-        backRight.setPower(forward-strafe-turn);
+        backRight.setPower(forward+strafe-turn);
     }
 
     public void loop(){

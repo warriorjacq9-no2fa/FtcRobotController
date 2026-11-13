@@ -44,9 +44,9 @@ public class DPosMechBotsAuto extends OpMode {
 
         //!!!! Not yet certain what these will need to be set to for Real Bot, but for Test Guy #1 it's FR: R, BR: F, FL: F, BL: R
         frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
-        backRight.setDirection(DcMotorSimple.Direction.FORWARD);
+        backRight.setDirection(DcMotorSimple.Direction.REVERSE);
         frontLeft.setDirection(DcMotorSimple.Direction.FORWARD);
-        backLeft.setDirection(DcMotorSimple.Direction.REVERSE);
+        backLeft.setDirection(DcMotorSimple.Direction.FORWARD);
 
         frontRight.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
         frontLeft.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
@@ -55,11 +55,11 @@ public class DPosMechBotsAuto extends OpMode {
     }
 
     //Drive function. 'a' is for forward, 'b' is for strafe, 'c' is for turn. Positive goes right, negative goes left (I think).
-    public void drive(double a, double b, double c) {
-        frontLeft.setPower(a+b+c);
-        frontRight.setPower(a+b-c);
-        backLeft.setPower(a-b+c);
-        backRight.setPower(a-b-c);
+    public void drive(double forward, double strafe, double turn) {
+        frontLeft.setPower(forward+strafe+turn);
+        frontRight.setPower(forward-strafe-turn);
+        backLeft.setPower(forward-strafe+turn);
+        backRight.setPower(forward+strafe-turn);
     }
 
     //The length of time it is in each state needs to be figured out through testing to make it work as intended!!!
