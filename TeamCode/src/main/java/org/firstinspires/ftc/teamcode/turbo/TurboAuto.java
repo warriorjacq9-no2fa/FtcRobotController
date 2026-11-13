@@ -59,7 +59,10 @@ public class TurboAuto extends OpMode {
         backRight.setDirection(DcMotorEx.Direction.REVERSE);
 
         driver = new Driver(frontLeft, frontRight, backLeft, backRight, imu, telemetry);
-        limelightDriver = new LimelightDriver(ll, turret, driver, telemetry);
+        limelightDriver = new LimelightDriver(
+                new Pose(3.66/2, 0, 0), DistanceUnit.METER,
+                ll, turret, driver, telemetry
+        );
 
         telemetry.addLine("Initialized auto");
         telemetry.update();

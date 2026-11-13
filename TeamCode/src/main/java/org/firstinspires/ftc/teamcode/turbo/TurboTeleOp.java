@@ -8,11 +8,10 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.IMU;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.LimelightDriver;
 import org.firstinspires.ftc.teamcode.Driver;
-
-import java.util.ArrayList;
-import java.util.Arrays;
+import org.firstinspires.ftc.teamcode.Pose;
 
 /*
  * The FTC controller has two types of operation
@@ -156,7 +155,10 @@ public class TurboTeleOp extends LinearOpMode {
         backRight.setDirection(DcMotorEx.Direction.REVERSE);
 
         Driver driver = new Driver(frontLeft, frontRight, backLeft, backRight, imu, telemetry);
-        limelightDriver = new LimelightDriver(ll, turret, driver, telemetry);
+        limelightDriver = new LimelightDriver(
+                new Pose(3.66/2, 0, 0), DistanceUnit.METER,
+                ll, turret, driver, telemetry
+        );
 
         waitForStart();
 

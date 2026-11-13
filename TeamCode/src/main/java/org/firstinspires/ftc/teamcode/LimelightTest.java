@@ -8,7 +8,8 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.IMU;
-import com.qualcomm.robotcore.hardware.Servo;
+
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 @Autonomous(name="LimelightTest")
 public class LimelightTest extends OpMode {
@@ -40,6 +41,7 @@ public class LimelightTest extends OpMode {
         );
 
         llDriver = new LimelightDriver(
+                new Pose(0, 0, 0), DistanceUnit.METER,
                 limelight,
                 hardwareMap.get(DcMotorEx.class, "servo"),
                 driver,

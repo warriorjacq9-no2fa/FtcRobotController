@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.hardware.PIDCoefficients;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 
 import java.util.ArrayList;
@@ -42,6 +43,7 @@ public class LimelightDriver {
     // 0-centered, radians
     private double position = 0;
     private double targetPosition = 0;
+    Pose targetPose = new Pose(0, 0, 0);
     private double oldEncoder = 0;
     private final ElapsedTime loopTimer = new ElapsedTime();
     private final ElapsedTime memTrackTimer = new ElapsedTime();
@@ -55,7 +57,7 @@ public class LimelightDriver {
         BLUE_FAR
     }
 
-    private ArrayList<Integer>[] fiducialSets = new ArrayList[] {
+    private final ArrayList<Integer>[] fiducialSets = new ArrayList[] {
             new ArrayList<>(Arrays.asList(30, 31, 32, 33)),
             new ArrayList<>(Arrays.asList(34, 35, 36, 37)),
             new ArrayList<>(Arrays.asList(38, 39, 40, 41)),
@@ -72,9 +74,15 @@ public class LimelightDriver {
     private LimelightState state;
 
     public LimelightDriver(
+            Pose startPose, DistanceUnit units,
             Limelight3A limelight, DcMotorEx turret,
             Driver driver, Telemetry telemetry
     ) {
+        this.targetPose = new Pose(
+                units.toMeters(startPose.x),
+                units.toMeters(startPose.y),
+                0
+        );
         this.ll = limelight;
         this.turret = turret;
         this.driver = driver;
@@ -118,8 +126,6 @@ public class LimelightDriver {
         */
         return velocity.y * ux - velocity.x * uy;
     }
-
-    Pose targetPose = new Pose(0, 0, 0);
 
     public void enterManualMode(double targetPosition) {
         this.targetPosition = targetPosition;
