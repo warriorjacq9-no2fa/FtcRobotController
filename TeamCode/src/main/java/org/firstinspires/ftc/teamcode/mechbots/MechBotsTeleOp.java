@@ -23,7 +23,7 @@ public class MechBotsTeleOp extends LinearOpMode {
      * from mm/s
      */
     private static final double SPEED = (500) / 52.0;
-    private static final double SHOOTER_SPEED = 500;
+    private static final double SHOOTER_SPEED = (4100.0 / 60) * 28;
 
     private DcMotorEx frontLeft, frontRight, backLeft, backRight;
     private DcMotorEx intake, sGate, shooter;
@@ -57,7 +57,7 @@ public class MechBotsTeleOp extends LinearOpMode {
         if(gamepad1.a) {
             intake.setPower(0);
         } else {
-            intake.setPower(1);
+            intake.setPower(0.65);
         }
     }
 
@@ -78,8 +78,7 @@ public class MechBotsTeleOp extends LinearOpMode {
              */
 
             shooter.setVelocity(
-                    SHOOTER_SPEED + 50 * Math.pow(gamepad2.left_trigger - 0.5, 1.0 / 3),
-                    AngleUnit.RADIANS
+                    SHOOTER_SPEED + 100 * Math.cbrt(gamepad2.left_trigger - 0.5)
             );
         } else {
             shooter.setPower(0);
@@ -122,6 +121,9 @@ public class MechBotsTeleOp extends LinearOpMode {
         imu.initialize(new IMU.Parameters(orientationOnRobot));
 
         intake.setDirection(DcMotorEx.Direction.REVERSE);
+        sGate.setDirection(DcMotorEx.Direction.REVERSE);
+
+        shooter.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
 
         frontLeft.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
         frontRight.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
@@ -129,6 +131,7 @@ public class MechBotsTeleOp extends LinearOpMode {
         backRight.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
 
         backRight.setDirection(DcMotorEx.Direction.REVERSE);
+        frontRight.setDirection(DcMotorEx.Direction.REVERSE);
 
         frontLeft.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
         frontRight.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);

@@ -6,6 +6,7 @@ import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.IMU;
 
@@ -15,10 +16,13 @@ import org.firstinspires.ftc.teamcode.Driver;
 import org.firstinspires.ftc.teamcode.Pose;
 import org.firstinspires.ftc.teamcode.commands.DriveCommand;
 import org.firstinspires.ftc.teamcode.commands.WaitCommand;
+import org.firstinspires.ftc.teamcode.legacyturbo.commands.ShootCommand;
 
 @Autonomous(name="LegacyTurboAuto")
 public class LegacyTurboAuto extends OpMode {
 
+    private DcMotorEx shooter;
+    private CRServo gate;
     private Driver driver;
 
     private enum AutoState {
@@ -38,11 +42,16 @@ public class LegacyTurboAuto extends OpMode {
         DcMotorEx frontRight = hardwareMap.get(DcMotorEx.class, "frontRight");
         DcMotorEx backLeft = hardwareMap.get(DcMotorEx.class, "backLeft");
         DcMotorEx backRight = hardwareMap.get(DcMotorEx.class, "backRight");
+        shooter = hardwareMap.get(DcMotorEx.class, "shooter");
+        gate = hardwareMap.get(CRServo.class, "gate");
         IMU imu = hardwareMap.get(IMU.class, "imu");
 
+        shooter.setDirection(DcMotorEx.Direction.REVERSE);
+        shooter.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+
         RevHubOrientationOnRobot orientationOnRobot = new RevHubOrientationOnRobot(
-                RevHubOrientationOnRobot.LogoFacingDirection.DOWN,
-                RevHubOrientationOnRobot.UsbFacingDirection.RIGHT
+                RevHubOrientationOnRobot.LogoFacingDirection.UP,
+                RevHubOrientationOnRobot.UsbFacingDirection.BACKWARD
         );
         imu.initialize(new IMU.Parameters(orientationOnRobot));
         imu.resetYaw();
@@ -62,8 +71,9 @@ public class LegacyTurboAuto extends OpMode {
     public void loop() {
         switch(state) {
             case INIT:
+                driver.doCommand(new ShootCommand(shooter, gate));
                 driver.doCommand(new DriveCommand(
-                        new Pose(300, 1100, 0),
+                        new Pose(-1150, 2300, 0),
                         AngleUnit.DEGREES, DistanceUnit.MM,
                         driver
                 ));

@@ -10,6 +10,7 @@ import org.firstinspires.ftc.teamcode.commands.Command;
 import java.util.Locale;
 
 public class ShootCommand extends Command {
+    private static final double SHOOTER_SPEED = (4500.0 / 60) * 28;
     private enum ShootState {
         SPIN,
         SHOOTING,
@@ -29,14 +30,16 @@ public class ShootCommand extends Command {
     public void run() {
         switch(state) {
             case SPIN:
-                shooter.setPower(0.7);
+                shooter.setVelocity(SHOOTER_SPEED);
                 shootTimer.reset();
                 state = ShootState.SHOOTING;
                 break;
             case SHOOTING:
                 if(shootTimer.seconds() > 1) {
                     sGate.setPower(0.5);
-                } else if(shootTimer.seconds() > 1.5) {
+                } else if(shootTimer.seconds() > 2) {
+                    shooter.setVelocity(0);
+                    sGate.setPower(0);
                     state = ShootState.DONE;
                 }
                 break;

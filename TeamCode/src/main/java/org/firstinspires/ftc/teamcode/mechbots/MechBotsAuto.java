@@ -15,9 +15,11 @@ import org.firstinspires.ftc.teamcode.Driver;
 import org.firstinspires.ftc.teamcode.Pose;
 import org.firstinspires.ftc.teamcode.commands.DriveCommand;
 import org.firstinspires.ftc.teamcode.commands.WaitCommand;
+import org.firstinspires.ftc.teamcode.mechbots.commands.ShootCommand;
 
 @Autonomous(name="MechBotsAuto")
 public class MechBotsAuto extends OpMode {
+    private DcMotorEx shooter, sGate;
 
     private Driver driver;
 
@@ -38,6 +40,8 @@ public class MechBotsAuto extends OpMode {
         DcMotorEx frontRight = hardwareMap.get(DcMotorEx.class, "frontRight");
         DcMotorEx backLeft = hardwareMap.get(DcMotorEx.class, "backLeft");
         DcMotorEx backRight = hardwareMap.get(DcMotorEx.class, "backRight");
+        shooter = hardwareMap.get(DcMotorEx.class, "shooter");
+        sGate = hardwareMap.get(DcMotorEx.class, "sGate");
         IMU imu = hardwareMap.get(IMU.class, "imu");
 
         RevHubOrientationOnRobot orientationOnRobot = new RevHubOrientationOnRobot(
@@ -62,8 +66,9 @@ public class MechBotsAuto extends OpMode {
     public void loop() {
         switch(state) {
             case INIT:
+                driver.doCommand(new ShootCommand(shooter, sGate));
                 driver.doCommand(new DriveCommand(
-                        new Pose(300, 1100, 0),
+                        new Pose(-1150, 2300, 0),
                         AngleUnit.DEGREES, DistanceUnit.MM,
                         driver
                 ));
