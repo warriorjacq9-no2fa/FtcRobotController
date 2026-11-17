@@ -23,9 +23,9 @@ public class KrowTeleop extends OpMode {
             /* v-o */ BackRight = hardwareMap.get(DcMotorEx.class,"backRight");
         /* Wheel Variable = Irl Wheel from DcMotot.class */
 
-        /* o-^ */ FrontLeft.setDirection(DcMotorSimple.Direction.REVERSE);  /* Set Left Normal Direction */
+        /* o-^ */ FrontLeft.setDirection(DcMotorSimple.Direction.FORWARD);  /* Set Left Normal Direction */
         /* o-v */ BackLeft.setDirection(DcMotorSimple.Direction.FORWARD);   /* Set Left Normal Direction */
-            /* ^-o */ FrontRight.setDirection(DcMotorSimple.Direction.FORWARD); /* Set Right Reversed */
+            /* ^-o */ FrontRight.setDirection(DcMotorSimple.Direction.REVERSE); /* Set Right Reversed */
             /* v-o */ BackRight.setDirection(DcMotorSimple.Direction.REVERSE);  /* Set Right Reversed */
         /* Set Right Wheels to Reverse, Set Left Wheels to normal direction (Forward) */
 
@@ -55,11 +55,11 @@ public class KrowTeleop extends OpMode {
         /* () (<\>) */  double strafe = gamepad1.left_stick_x;    /* Set X-axis of Left Stick to Strafe */
         /* () (<\>) */  double turn = gamepad1.right_stick_x;     /* Set Y-axis of Right Stick to Turn */
         double FLPower = ( forward + strafe + turn );
-        double FRPower = ( forward + strafe - turn );
+        double FRPower = ( forward - strafe - turn );
         double BLPower = ( forward - strafe + turn );
-        double BRPower = ( forward - strafe - turn );
-        FrontLeft.setPower( FRPower );
-        FrontRight.setPower( FLPower );
+        double BRPower = ( forward + strafe - turn );
+        FrontLeft.setPower( FLPower );
+        FrontRight.setPower( FRPower );
         BackLeft.setPower( BLPower );
         BackRight.setPower( BRPower );
         String PreFL = FL;
@@ -73,7 +73,7 @@ public class KrowTeleop extends OpMode {
         String Wheels = FL + FR + BL + BR;
         if (!(PreFL + PreBL + PreFR + PreBR).equals(FL + BL + FR + BR)){
            /*  TeleopDisplay.convert( Wheels, FL , FR , BL , BR ); */
-            telemetry.addLine(TeleopDisplay.convert( Wheels, FL , FR , BL , BR ));
+            telemetry.addLine(TeleopDisplay.convert( Wheels, FLPower , FRPower , BLPower , BRPower ));
             telemetry.update();
         }
     }
