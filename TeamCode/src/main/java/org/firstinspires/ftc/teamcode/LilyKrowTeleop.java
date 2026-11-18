@@ -4,12 +4,10 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 @TeleOp(name="Lily/KrowTeleOp")
-public class LilyTeleop extends OpMode {
+public class LilyKrowTeleop extends OpMode {
 
-    private static final double SPEED = (750) / 52.0;
     private DcMotorEx frontRight = null;
     private DcMotorEx frontLeft = null;
      private DcMotorEx backRight = null;
