@@ -29,7 +29,14 @@ public class BPosMechBotsAuto extends OpMode {
         TURN,
         COMPLETE
     }
+    private enum RobotType {
+        TESTGUY,
+        MAINBOT
+    }
     private AutoState state = AutoState.INIT;
+
+    private APosMechBotsAuto.RobotType robotType = APosMechBotsAuto.RobotType.MAINBOT;
+
 
     public void init() {
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
@@ -50,6 +57,19 @@ public class BPosMechBotsAuto extends OpMode {
         backRight.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
         backLeft.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
     }
+
+    @Override
+    public void init_loop() {
+        if (gamepad1.b) {
+            robotType = APosMechBotsAuto.RobotType.TESTGUY;
+        }
+        else if (gamepad1.a) {
+            robotType = APosMechBotsAuto.RobotType.MAINBOT;
+        }
+        telemetry.addData("Selected Robot Type: ", robotType);
+        telemetry.addLine("A (x) for MAINBOT, B (circle) for TESTGUY");
+    }
+
 
     //Drive function. 'a' is for forward, 'b' is for strafe, 'c' is for turn. Positive goes right, negative goes left (I think).
     public void drive(double forward, double strafe, double turn) {
@@ -77,7 +97,7 @@ public class BPosMechBotsAuto extends OpMode {
             case FORWARD:
                 //Moves forward into the parking space
                 //Both Test and Real use timer < 1 and a: 0.2
-                if (timer.seconds() < 1) {
+                if (timer.seconds() < 2) {
                     drive(0.2, 0.0, 0.0);
                     telemetry.addLine("FORWARD");
                     telemetry.update();
@@ -89,10 +109,11 @@ public class BPosMechBotsAuto extends OpMode {
                 break;
 
             case TURN:
+                double turnTime = (robotType == APosMechBotsAuto.RobotType.MAINBOT)? 2.2 : 2.7;
                 //Turns to face away from the wall
                 //Real Bot (14 wide * 15 long) --> timer: 2.2, a: 0.0, b: 0.0, c: -0.2
                 //Test Guy #1 (18 wide * 17 long) --> timer: 2.7, a: 0.0, b: 0.0, c: -0.2
-                if (timer.seconds() < 2.5) {
+                if (timer.seconds() < turnTime) {
                     drive(0.0, 0.0, -0.2);
                     telemetry.addLine("TURN");
                     telemetry.update();

@@ -75,7 +75,7 @@ public class CPosMechBotsAuto extends OpMode {
             case STRAFE:
                 //Strafes left into the parking space
                 //Should be same for Test and Real, timer > 2 and b: -0.2
-                if (timer.seconds() < 2) {
+                if (timer.seconds() < 4) {
                     drive(0.0, -0.2, 0.0);
                     telemetry.addLine("STRAFE");
                     telemetry.update();

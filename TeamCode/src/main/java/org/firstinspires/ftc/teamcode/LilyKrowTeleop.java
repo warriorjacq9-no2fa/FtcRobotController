@@ -5,12 +5,12 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-@TeleOp(name="Lily/KrowTeleOp")
+@TeleOp(name="LilyZ /KrowTeleOp")
 public class LilyKrowTeleop extends OpMode {
 
     private DcMotorEx frontRight = null;
     private DcMotorEx frontLeft = null;
-     private DcMotorEx backRight = null;
+    private DcMotorEx backRight = null;
     private DcMotorEx backLeft = null;
 
 

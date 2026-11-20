@@ -30,7 +30,7 @@ public class APosMechBotsAuto extends OpMode {
         COMPLETE
     }
 
-    private enum RobotType {
+    public enum RobotType {
         TESTGUY,
         MAINBOT
     }
@@ -96,14 +96,14 @@ public class APosMechBotsAuto extends OpMode {
                 break;
 
             case TURN:
-                double turnTime = (robotType == RobotType.MAINBOT)? 2.2 : 2.7;
+                double turnTime = (robotType == RobotType.MAINBOT)? 2.0 : 2.5;
                 double driveVelocity = (robotType == RobotType.MAINBOT)? 0.11 : 0.09;
                 //Turns left while moving away from the wall
                 //Real Bot (14 wide * 15 long) --> timer: 2.2, a: 0.11, b: 0.0, c: -0.2
                 //Test Guy #1 (18 wide * 17 long) --> timer: 2.7, a: 0.09, b: 0.0, c: -0.2
                 if (timer.seconds() < turnTime) {
                     drive(driveVelocity, 0.0, -0.2);
-                    telemetry.addLine("TURN (turning by " + driveVelocity +" for " +turnTime+" seconds)");
+                    telemetry.addLine("TURN");
                     telemetry.update();
                 }
                 else {
@@ -115,7 +115,7 @@ public class APosMechBotsAuto extends OpMode {
             case BACKUP:
                 //Backs into the parking area
                 //BOTH Real Bot and Test Guy #1 --> timer: 9, a: -0.2, b: 0.0, c: 0.0
-                if (timer.seconds() < 9) {
+                if (timer.seconds() < 9.5) {
                     drive(-0.2, 0.0, 0.0);
                     telemetry.addLine("BACKUP");
                     telemetry.update();
