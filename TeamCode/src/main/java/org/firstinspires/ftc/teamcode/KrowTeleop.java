@@ -39,7 +39,6 @@ public class KrowTeleop extends OpMode {
     String BL = "x";
     String FR = "x";
     String BR = "x";
-
     public String Display (double P) {
         if (P < 0) {
             return "^";
@@ -62,20 +61,9 @@ public class KrowTeleop extends OpMode {
         FrontRight.setPower( FRPower );
         BackLeft.setPower( BLPower );
         BackRight.setPower( BRPower );
-        String PreFL = FL;
-        String PreBL = BL;
-        String PreFR = FR;
-        String PreBR = BR;
-        String FL = Display(FLPower);
-        String BL = Display(BLPower);
-        String FR = Display(FRPower);
-        String BR = Display(BRPower);
-        String Wheels = FL + FR + BL + BR;
-        if (!(PreFL + PreBL + PreFR + PreBR).equals(FL + BL + FR + BR)){
-           /*  TeleopDisplay.convert( Wheels, FL , FR , BL , BR ); */
-            telemetry.addLine(TeleopDisplay.convert( Wheels, FLPower , FRPower , BLPower , BRPower ));
+            telemetry.addLine(TeleopDisplay.convert( FLPower , FRPower , BLPower , BRPower ));
             telemetry.update();
-        }
+
     }
         public void loop(){
         drive();

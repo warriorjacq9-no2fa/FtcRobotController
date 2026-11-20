@@ -1,9 +1,9 @@
 package org.firstinspires.ftc.teamcode;
 
 public class TeleopDisplay {
-    public static String convert(String Wheels, double FL, double FR, double BL, double BR) {
-        if ((Wheels).equals("^^^^") || (Wheels).equals("vvvv")) {
-            if ((Wheels).equals("^^^^")) {
+    public static String convert( double FL, double FR, double BL, double BR) {
+        if ( ( FL > 0 && FR > 0 && BL > 0 && BR > 0 ) || ( FL < 0 && FR < 0 && BL < 0 && BR < 0 ) ) {
+            if ( ( FL + FR + BL + BR ) > 0  ) {
                 return "Forward";  /* forward */
             } else {
                 return "Backward"; /* Backward */
@@ -16,7 +16,7 @@ public class TeleopDisplay {
                     return "Strafing Right";
                 } else if ((FL + BR) > 0) {
                     return "Diagonal Up right";
-                } else {
+                } else if {
                     return "Diagonal Down right";
                 }
             }
